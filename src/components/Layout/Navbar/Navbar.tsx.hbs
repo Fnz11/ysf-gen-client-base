@@ -1,0 +1,58 @@
+import React, { useEffect, useState } from "react";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ModeToggle } from "../ModeToggle";
+import { UserNav } from "./UserNav";
+import { SheetMenu } from "../SheetMenu";
+import { getUserById } from "@/utils/users-api";
+import { useQuery } from "@tanstack/react-query";
+
+const Navbar = () => {
+  const getUser = async () => {
+    if (typeof window !== "undefined") {
+      const id = JSON.parse(localStorage.getItem("user") || "{}").userId;
+      if (id) {
+        try {
+          const res = await getUserById(id);
+          return res.data.data;
+        } catch (err) {
+          console.log(err);
+          return null;
+        }
+      }
+    }
+    return null;
+  };
+
+  const { data: userData } = useQuery({
+    queryKey: ["user"],
+    queryFn: getUser,
+  });
+
+  return (
+    <nav className="flex w-full bg-card h-14 items-center z-[20] relative gap-4 border-b px-4 lg:h-[66px] lg:px-6 shadow-md shadow-zinc-200 dark:shadow-zinc-900">
+      {/* <MobileNav /> */}
+      <div className="w-full flex-1 max-md:hidden">
+        <form>
+          <Input
+            value={""}
+            onChange={() => {} }
+            type="search"
+            prefix={<Search className="h-5 w-5" strokeWidth={1.3} />}
+            placeholder="Search products..."
+            className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-2/3"
+          />
+        </form>
+      </div>
+      <div className="flex items-center space-x-4 lg:space-x-0">
+        <SheetMenu />
+      </div>
+      <div className="flex flex-1 items-center space-x-2 justify-end">
+        <ModeToggle />
+        <UserNav userData={userData} />
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;

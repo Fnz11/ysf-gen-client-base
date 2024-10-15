@@ -1,0 +1,63 @@
+"use client";
+import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
+import { ChevronDown } from "lucide-react";
+import React, { useState } from "react";
+
+const JENIS_BAHAN = [
+  {
+    name: "Monograf",
+    count: 3343,
+  },
+  {
+    name: "Rekaman Suara",
+    count: 343,
+  },
+  {
+    name: "Bahan Campuran",
+    count: 123,
+  },
+  {
+    name: "Bahan Kartografis",
+    count: 394,
+  },
+  {
+    name: "Sumber Elektronik",
+    count: 324,
+  },
+];
+
+const JenisBahanFilter: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(true);
+  return (
+    <div
+      className={cn(
+        `p-0 overflow-hidden transition-all duration-700 ease-out `,
+        !isOpen ? "h-10" : "h-[17rem]"
+      )}
+    >
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={"w-full flex items-center justify-between h-10 text-lg"}
+      >
+        <h1>Jenis Bahan</h1>
+        <ChevronDown />
+      </button>
+      {JENIS_BAHAN.map((item, i) => (
+        <div
+          key={i}
+          className={`w-full flex items-center py-2 px-5 `}
+        >
+          <Checkbox className="h-6 w-6 mr-2 rounded-md" />
+          <h1>{item.name}</h1>
+          <h1 className="ml-auto bg-info rounded-full px-2 text-xs text-background font-medium">
+            {item.count}
+          </h1>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default JenisBahanFilter;

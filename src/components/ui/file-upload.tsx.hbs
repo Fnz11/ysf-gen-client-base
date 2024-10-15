@@ -1,0 +1,133 @@
+"use client";
+import React, { useCallback, useState } from "react";
+import { Button } from "./button";
+import { Input } from "./input";
+import { useDropzone } from "react-dropzone";
+import { File, UploadCloudIcon, UploadIcon } from "lucide-react";
+import { AxiosProgressEvent } from "axios";
+import { Progress } from "./progress";
+import { AnimatePresence, motion } from "framer-motion";
+
+type UploadProps = {
+  onUploadComplete: (file: File | null) => void;
+  accept?: string;
+};
+
+const FileUpload: React.FC<UploadProps> = ({ accept, onUploadComplete }) => {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [progress, setProgress] = useState<number>(0);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const onUploadProgress = (progressEvent: AxiosProgressEvent) => {
+    if (progressEvent.total) {
+      const percentage = Math.round(
+        (progressEvent.loaded * 100) / progressEvent.total
+      );
+      setProgress(percentage);
+    }
+  };
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files?.length) {
+      const file = event.target.files[0];
+      setSelectedFile(file);
+      onUploadComplete(file); // Pass file to parent
+    }
+  };
+
+  const removeSelectedFile = () => {
+    setLoading(false);
+    onUploadComplete(null);
+    setSelectedFile(null);
+  };
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      const file = acceptedFiles[0];
+      setSelectedFile(file);
+      onUploadComplete(file);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const { getRootProps, getInputProps } = useDropzone({ onDrop });
+
+  return (
+    <div className="space-y-3 h-full">
+      <div {...getRootProps()} className="h-full relative">
+        {!!selectedFile && (
+          <Button
+            onClick={removeSelectedFile}
+            type="button"
+            className="absolute top-0 left-0"
+            variant="secondary"
+          >
+            {selectedFile ? "Remove" : "Close"}
+          </Button>
+        )}
+        <label
+          htmlFor="dropzone-file"
+          className="relative flex flex-col items-center justify-center p-6 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600 w-full visually-hidden-focusable h-full"
+        >
+          {loading && (
+            <div className="text-center max-w-md">
+              <Progress value={progress} />
+              <p className="text-sm font-semibold">Uploading Picture</p>
+              <p className="text-xs text-gray-400">
+                Do not refresh or perform any other action while the picture is
+                being uploaded
+              </p>
+            </div>
+          )}
+
+          {!loading && !selectedFile && (
+            <motion.div
+              initial={  { opacity: 0, scale: 0.8 }  }
+              animate={  { opacity: 1, scale: 1 }  }
+              exit={  { opacity: 0, scale: 0.8 }  }
+              className="text-center"
+            >
+              <div className="border p-2 rounded-md max-w-min mx-auto">
+                <UploadIcon size="1.5em " />
+              </div>
+
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                <span className="font-semibold">Drag a file</span>
+              </p>
+              <p className="text-xs text-gray-400 dark:text-gray-400">
+                Select a file or drag here to upload directly
+              </p>
+            </motion.div>
+          )}
+          {!(!loading && !selectedFile) && (
+            <motion.div
+              initial={  { opacity: 0, scale: 0.8 }  }
+              animate={  { opacity: 1, scale: 1 }  }
+              exit={  { opacity: 0, scale: 0.8 }  }
+              className="text-center"
+            >
+              <File size="6em" strokeWidth={0.7} className="mx-auto" />
+              <h1>{selectedFile?.name}</h1>
+              <h1>
+                {selectedFile?.size &&
+                  (selectedFile?.size / 1000)?.toLocaleString()}{" "}
+                KB
+              </h1>
+            </motion.div>
+          )}
+        </label>
+
+        <Input
+          {...getInputProps()}
+          accept={accept || ".xlsx"}
+          type="file"
+          className="opacity-0 size-full absolute top-0 left-0"
+          disabled={loading || selectedFile !== null}
+          onChange={handleChange}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default FileUpload;

@@ -1,0 +1,30 @@
+import axios from "axios";
+
+const BE_URL = process.env.NEXT_PUBLIC_BE_URL;
+
+const axiosInstance = axios.create({
+  baseURL: BE_URL,
+});
+
+// Add a request interceptor
+axiosInstance.interceptors.request.use(
+  (config) => {
+    // Get the token from localStorage
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("session");
+
+      // If the token exists, add it to the Authorization header
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+
+    return config;
+  },
+  (error) => {
+    // Handle the error
+    return Promise.reject(error);
+  }
+);
+
+export default axiosInstance;

@@ -1,0 +1,114 @@
+"use client";
+import React, { Suspense } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+import { useRouter } from "next/navigation";
+import AuthClient from "@/components/Auth/AuthClient";
+import Link from "next/link";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { emailSchema, EmailSchemaProps, forgotPassword } from "@/utils/auth";
+
+const ForgotPassword = () => {
+  return (
+    <Suspense fallback={"Loading..."}>
+      <ForgotPasswordClient />
+    </Suspense>
+  );
+};
+
+const ForgotPasswordClient = () => {
+  // =============== HOOKS ================
+  const router = useRouter();
+  const form = useForm<EmailSchemaProps>({
+    resolver: zodResolver(emailSchema),
+  });
+  const { isPending, mutate: mutateForgotPassword } = useMutation({
+    mutationKey: ["signin"],
+    mutationFn: (data: EmailSchemaProps) => forgotPassword(data),
+    onSuccess: (res: any) => {
+      router.push("/reset-password?email=" + JSON.parse(res.config.data).email);
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Something went wrong");
+      console.log(err);
+    },
+  });
+
+  // =============== STATES ================
+
+  const { handleSubmit, control } = form;
+
+  // =============== HANDLE ================
+
+  const onSubmit = handleSubmit((data) => {
+    console.log("Submitted!: ", data);
+    mutateForgotPassword(data);
+  });
+
+  // =============== RENDER ================
+  return (
+    <>
+      <AuthClient
+        cardTitle="Forgot Your Password?"
+        cardDescription="No worries! Just enter your email address below, and we'll send you a verification code to reset your password."
+      >
+        <Form {...form}>
+          <form onSubmit={onSubmit} className="grid gap-6 w-full">
+            {/* Email */}
+            <FormField
+              control={control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="Input email here"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Submit */}
+            <Button
+              disabled={isPending}
+              loading={isPending}
+              size={"lg"}
+              type="submit"
+              className="w-full"
+            >
+              Send
+            </Button>
+          </form>
+        </Form>
+        <div className="mt-8 text-center text-base text-muted-foreground">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/signup"
+            className="hover:underline hover:!scale-[1.1] transition-all "
+          >
+            Sign up
+          </Link>
+        </div>
+      </AuthClient>
+    </>
+  );
+};
+
+export default ForgotPassword;

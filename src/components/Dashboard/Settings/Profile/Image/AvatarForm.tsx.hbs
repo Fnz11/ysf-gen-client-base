@@ -1,0 +1,102 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Pen } from "lucide-react";
+import React from "react";
+import { FileWithPath, useDropzone } from "react-dropzone";
+
+type FileWithPreview = FileWithPath & {
+  preview: string;
+};
+
+const AvatarForm = ({
+  form,
+  userData,
+  avatarImage,
+  setAvatarImage,
+}: {
+  form: any;
+  userData: any;
+  avatarImage: string;
+  setAvatarImage: React.Dispatch<React.SetStateAction<string>>;
+}) => {
+  // ============================== STATE ==============================
+  const [selectedAvatarFile, setSelectedAvatarFile] =
+    React.useState<FileWithPreview | null>(null);
+  // ============================== HANDLE ==============================
+  const onDropAvatar = React.useCallback(
+    (acceptedFiles: FileWithPath[]) => {
+      const file = acceptedFiles[0];
+      if (!file) {
+        alert("Selected image is too large!");
+        return;
+      }
+
+      const fileWithPreview = Object.assign(file, {
+        preview: URL.createObjectURL(file),
+      });
+
+      setSelectedAvatarFile(fileWithPreview);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setAvatarImage(base64String); // Update the avatar image state with base64 string
+      };
+      reader.readAsDataURL(file); // Read the file as a data URL
+    },
+    [setAvatarImage]
+  );
+
+  const {
+    getRootProps: getRootPropsAvatar,
+    getInputProps: getInputPropsAvatar,
+  } = useDropzone({
+    onDrop: onDropAvatar,
+    accept: { "image/*": [] },
+  });
+
+  // ============================== RENDER ==============================
+
+  return (
+    <>
+      <Avatar
+        {...getRootPropsAvatar()}
+        className="absolute bottom-[-2.2rem] size-24 md:size-28 rounded-full border-[0.5rem] border-card group overflow-visible z-[15]"
+      >
+        <div className="size-full relative cursor-pointer">
+          <>
+            <div className="size-full absolute">
+              <div className="size-full relative rounded-full overflow-hidden">
+                <div className="absolute bg-white/20 dark:bg-white/[0.1] size-full scale-0 group-hover:scale-[1.2] transition-all duration-300 rounded-full blur-[0.7rem]" />
+              </div>
+            </div>
+            <div className="absolute h-[30%] w-[30%] aspect-square flex items-center justify-center bg-primary border-2 border-white rounded-full bottom-[-5%] right-[-5%] hover:brightness-[1.1] opacity-0 group-hover:opacity-100 duration-200 transition-all">
+              <input {...getInputPropsAvatar()} className="z-[10]" />
+              <Pen className="text-white" size={16} />
+            </div>
+          </>
+          {(avatarImage ||
+            selectedAvatarFile?.preview ||
+            form.getValues("image")) && (
+            <AvatarImage
+              src={
+                avatarImage
+                  ? avatarImage
+                  : selectedAvatarFile?.preview
+                  ? selectedAvatarFile.preview
+                  : form.getValues("image")
+              }
+              alt="image"
+              className="rounded-full"
+            />
+          )}
+          <AvatarFallback className="uppercase font-semibold text-3xl bg-secondary text-white">
+            {userData?.userDetail?.firstName?.charAt(0) +
+              userData?.userDetail?.lastName?.charAt(0) || "CN"}
+          </AvatarFallback>
+        </div>
+      </Avatar>
+    </>
+  );
+};
+
+export default AvatarForm;

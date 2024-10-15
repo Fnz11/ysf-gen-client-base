@@ -1,0 +1,45 @@
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import React from "react";
+import { PAGE_SIZE_OPTIONS } from "../GlobalConst";
+import { Table } from "@tanstack/react-table";
+
+type Props = {
+  table: Table<any>;
+};
+
+const ShowDataFilterTable: React.FC<Props> = ({ table }) => {
+  return (
+    <div className="flex items-center justify-center gap-2 font-medium max-md:hidden">
+      Menampilkan
+      <Select
+        value={`${table.getState().pagination.pageSize}`}
+        onValueChange={(value) => {
+          table.setPageSize(Number(value));
+        }  }
+      >
+        <SelectTrigger className="small-input">
+          <SelectValue placeholder={table.getState().pagination.pageSize} />
+        </SelectTrigger>
+        <SelectContent className="min-w-[50px]">
+          <SelectGroup>
+            {PAGE_SIZE_OPTIONS.map((pageSize) => (
+              <SelectItem key={pageSize} value={`${pageSize}`}>
+                {pageSize}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      data
+    </div>
+  );
+};
+
+export default ShowDataFilterTable;

@@ -1,0 +1,25 @@
+import React from "react";
+import { Button } from "../ui/button";
+import { motion } from "framer-motion";
+import { XCircle } from "lucide-react";
+
+const DeleteButton: React.FC<{ active: boolean }> = ({ active }) => {
+  return (
+    <motion.div
+      initial={ { opacity: 0, scale: 0.7 } }
+      animate={active ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 } }
+      exit={ { opacity: 0, scale: 0.7 } }
+      transition={ { ease: "backInOut", duration: 0.3 } }
+      className={`${!active && "max-md:h-0 overflow-hidden"} w-full`}
+    >
+      <div className="ml-auto w-full gap-1 px-4">
+        <Button variant={"destructive"} type="button" className="w-full">
+          <XCircle className="h-5 w-5" strokeWidth={1.5} />
+          Hapus
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
+
+export default DeleteButton;

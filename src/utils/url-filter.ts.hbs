@@ -1,0 +1,45 @@
+import { NavigateOptions } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { ReadonlyURLSearchParams } from "next/navigation";
+
+export const getUrlFilter = ({
+  base,
+  ...params
+}: {
+  base: string;
+  [key: string]: string | number | null | undefined;
+}) => {
+  const queryParams: string[] = [];
+
+  // Iterate over params object
+  Object.entries(params).forEach(([key, value]) => {
+    if (value != null && value !== "") {
+      if (key === "page" && params["limit"]) {
+        const offset =
+          (parseInt(value as string) - 1) *
+          parseInt((params["limit"] as string) || "10");
+        queryParams.push(`offset=${offset}`);
+      } else {
+        queryParams.push(`${key}=${encodeURIComponent(value as string)}`);
+      }
+    }
+  });
+
+  return queryParams.length ? `${base}?${queryParams.join("&")}` : base;
+};
+
+// Set URL filter function remains unchanged
+export const setUrlFilter = (
+  searchParams: ReadonlyURLSearchParams,
+  pathname: any,
+  push: (href: string, options?: NavigateOptions) => void,
+  param: string,
+  value: string
+) => {
+  const params = new URLSearchParams(searchParams);
+  if (value) {
+    params.set(param, value);
+  } else {
+    params.delete(param);
+  }
+  push(`${pathname}?${params.toString()}`, { scroll: false });
+};

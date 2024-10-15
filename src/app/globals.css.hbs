@@ -1,0 +1,162 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+*::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #e4e4e7;
+  border-radius: 2rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+    @apply bg-background;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+  :root {
+    --background: 225.82 70% 97.86%;
+    --loader: 225.82 70% 97.86% / 0.6;
+    --foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --primary: 45.88 110% 55%;
+    --success: 100 50% 55%;
+    --primary-foreground: 222.86 84% 4.9%;
+    --secondary: 236.27 35.92% 51.96%;
+    --secondary-foreground: 210 40% 98.04%;
+    --shadow: 100 19% 50% / 0.07;
+    --accent: 210 155% 70.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 66.24% 67.2%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.6rem;
+  }
+
+  .dark {
+    --background: 228.56 64.55% 5.8%;
+    --loader: 228.56 64.55% 5.8% / 0.7;
+    --foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --popover: 220.8 42.37% 11.57%;
+    --popover-foreground: 210 40% 98%;
+    --card: 222.2 42.04% 11.59%;
+    --card-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --success: 100 50% 55%;
+    --input: 217.2 32.6% 17.5%;
+    --primary: 45.88 110% 55%;
+    --primary-foreground: 222.2 37.76% 12.51%;
+    --secondary: 236.27 35.92% 51.96%;
+    --secondary-foreground: 210 40% 98%;
+    --shadow: 100 19% 50% / 0.07;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 66.24% 67.2%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+.header-table {
+  @apply flex font-semibold items-center justify-start text-zinc-400 hover:brightness-[0.9] transition-all duration-300 ease-out h-full w-full px-3 uppercase tracking-widest text-xs;
+}
+
+.base-input {
+  @apply flex w-full min-h-12 rounded-xl border border-input/80 bg-background autofill:bg-background dark:placeholder:text-white/50 placeholder:text-black/50 px-4 py-3 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium  focus-visible:outline-none focus-visible:ring-2 hover:ring-1 hover:ring-accent/50 hover:bg-accent/[0.1] focus-visible:ring-accent/80 disabled:cursor-not-allowed disabled:opacity-50 focus:bg-accent/[0.08];
+}
+
+.small-input {
+  @apply flex w-full rounded-lg border border-input/80 bg-background autofill:bg-background placeholder:text-black/50 dark:placeholder:text-white/50 px-4 py-2 min-h-10 !h-10 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium  focus-visible:outline-none focus-visible:ring-2 hover:ring-1 hover:ring-accent/50 hover:bg-accent/[0.1] focus-visible:ring-accent/80 disabled:cursor-not-allowed disabled:opacity-50 focus:bg-accent/[0.08] !important;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: hsla(--foreground);
+  -webkit-box-shadow: 0 0 0px 1000px hsla(--foreground) inset;
+  box-shadow: 0 0 0px 1000px hsla(--foreground) inset;
+  background-color: hsla(--foreground);
+  transition: background-color 5000s ease-in-out 0s;
+  color: hsla(--foreground);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@keyframes light {
+  0% {
+    opacity: 0.3;
+    scale: 0.9;
+  }
+  50% {
+    opacity: 0.8;
+    scale: 1.1;
+  }
+  100% {
+    opacity: 0.3;
+    scale: 0.9;
+  }
+}
+
+@keyframes bg-light {
+  0% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+
+.animation-bg-light {
+  animation: bg-light 10s ease-out infinite;
+}
+
+.animation-light {
+  animation: light 10s ease-out infinite;
+}

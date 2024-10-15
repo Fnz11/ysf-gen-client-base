@@ -1,0 +1,66 @@
+"use client";
+import { PanelsTopLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { SidebarToggle } from "./SidebarToggle";
+import { MenuSidebar } from "./MenuSidebar";
+import { useSidebarStore } from "@/stores/SidebarStore";
+import { shallow } from "zustand/shallow";
+
+const Sidebar = () => {
+  const [isOpenSidebar, toggleSidebar] = useSidebarStore(
+    (state) => [state.isOpenSidebar, state.toggleSidebar],
+    shallow
+  );
+
+  return (
+    <aside
+      className={cn(
+        "fixed top-0 left-0 z-[21] h-screen -translate-x-full lg:translate-x-0 bg-card transition-[width] ease-in-out duration-300",
+        !isOpenSidebar ? "w-[93px]" : "w-72"
+      )}
+    >
+      <SidebarToggle
+        isOpen={isOpenSidebar}
+        setIsOpen={() => toggleSidebar(!isOpenSidebar)}
+      />
+
+      <div
+        className={`relative h-full flex flex-col pt-4 overflow-y-auto shadow-lg dark:shadow-zinc-800 ${
+          !isOpenSidebar && "pr-1"
+        }`}
+      >
+        <Button
+          className={cn(
+            "transition-transform ease-in-out duration-300 mb-1",
+            !isOpenSidebar ? "translate-x-1" : "translate-x-0"
+          )}
+          variant="link"
+        >
+          <Link
+            href="/"
+            className="flex items-center drop-shadow-sm gap-1"
+          >
+            <PanelsTopLeft className="w-7 h-7" />
+            <h1
+              className={cn(
+                "font-bold text-lg whitespace-nowrap transition-[transform,opacity,display] ease-in-out duration-300",
+                isOpenSidebar === false
+                  ? "-translate-x-96 opacity-0 hidden"
+                  : "translate-x-0 opacity-100"
+              )}
+            >
+              {{ projectName }}
+            </h1>
+          </Link>
+        </Button>
+        <MenuSidebar isOpen={isOpenSidebar} />
+      </div>
+    </aside>
+  );
+};
+
+export default Sidebar;

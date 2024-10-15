@@ -1,0 +1,159 @@
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import Header from "@/components/ui/title";
+import { CreateUserSchemaProps, UpdateUserSchemaProps } from "@/utils/users-api";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ReceiptText,
+  SendHorizontal,
+  SquareChartGantt,
+} from "lucide-react";
+import React from "react";
+import { FormProps, UseFormProps, UseFormReturn } from "react-hook-form";
+
+const SUMMARYS = [
+  [
+    {
+      label: "Username",
+      value: "username",
+    },
+    {
+      label: "Email",
+      value: "email",
+    },
+    {
+      label: "Role",
+      value: "role",
+    },
+    {
+      label: "Password",
+      value: "password",
+    },
+  ],
+  [
+    {
+      label: "First Name",
+      value: "first_name",
+    },
+    {
+      label: "Last Name",
+      value: "last_name",
+    },
+    {
+      label: "Number",
+      value: "number",
+    },
+    {
+      label: "Birth Date",
+      value: "birth_date",
+    },
+    {
+      label: "Address",
+      value: "address",
+    },
+    {
+      label: "City",
+      value: "city",
+    },
+    {
+      label: "Province",
+      value: "province",
+    },
+    {
+      label: "Country",
+      value: "country",
+    },
+    {
+      label: "ZIP / Postal Code",
+      value: "zip",
+    },
+    {
+      label: "Gender",
+      value: "gender",
+    },
+  ],
+];
+
+const SummaryUser = ({
+  form,
+  initData,
+  handlePrevStep,
+  isLoading,
+}: {
+  form: UseFormReturn<CreateUserSchemaProps | UpdateUserSchemaProps>;
+  initData: CreateUserSchemaProps | UpdateUserSchemaProps;
+  handlePrevStep: () => void;
+  isLoading: boolean;
+}) => {
+  return (
+    <Card className="relative overflow-hidden w-full">
+      {/* Header */}
+      <CardHeader>
+        <Header
+          Icon={SquareChartGantt}
+          title="Summary"
+          description="Summary of the user data"
+        />
+      </CardHeader>
+      {/* Content */}
+      <CardContent className="grid gap-20">
+        <Separator />
+        {SUMMARYS.map((summary, index) => (
+          <div
+            key={index}
+            className="grid grid-cols-2 gap-6 items-center justify-between"
+          >
+            {summary.map((item, index) => (
+              <div
+                key={index}
+                className="w-[90%] flex items-center justify-between"
+              >
+                <h1 className="text-base text-muted-foreground">
+                  {item?.label}
+                </h1>
+                <h2 className="text-base font-medium text-foreground text-start w-2/3 truncate">
+                  :{" "}
+                  {item?.value == "birth_date" &&
+                  form?.getValues(item?.value as any)
+                    ? new Date(
+                        form?.getValues(item?.value as any)
+                      )?.toLocaleDateString() || "-"
+                    : form?.getValues(item?.value as any)
+                    ? form?.getValues(item?.value as any)
+                    : "-"}
+                </h2>
+              </div>
+            ))}
+          </div>
+        ))}
+        <Separator className="mt-3" />
+      </CardContent>
+      <CardFooter className="px-6 py-4 flex items-center justify-end gap-3">
+        <Button onClick={handlePrevStep} size={"lg"} disabled={isLoading}>
+          <ArrowLeftIcon className="h-4 w-4 mt-[0.1rem]" />
+          Back
+        </Button>
+        <Button
+          size={"lg"}
+          type="submit"
+          disabled={isLoading}
+          loading={isLoading}
+        >
+          Submit
+          <SendHorizontal className="h-4 w-4 mt-[0.1rem]" />
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+};
+
+export default SummaryUser;

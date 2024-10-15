@@ -1,0 +1,67 @@
+"use client";
+import React, { useEffect } from "react";
+import axios from "axios";
+import { useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
+
+export default function GoogleAuth() {
+  const searchParams = useSearchParams();
+  const code = searchParams.get("code");
+
+  useEffect(() => {
+    if (code) {
+      // Make sure to URL encode the code and other parameters
+      const url = "https://oauth2.googleapis.com/token";
+      const REDIRECT_URL = process.env.NEXT_PUBLIC_GOOGLE_OAUTH_REDIRECT_URL;
+      const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      const CLIENT_SECRET = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET;
+
+      // Ensure the parameters are URL encoded
+      const data = new URLSearchParams({
+        code: code as string,
+        client_id: CLIENT_ID as string,
+        client_secret: CLIENT_SECRET as string,
+        redirect_uri: REDIRECT_URL as string,
+        grant_type: "authorization_code",
+      });
+
+      axios
+        .post(url, data, {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        })
+        .then((res) => {
+          const { access_token, id_token } = res.data;
+
+          // Send token to main window/tab
+          if (window.opener) {
+            window.opener.postMessage(
+              { type: "AUTH_SUCCESS", token: access_token, id_token },
+              "*"
+            );
+          }
+
+          // Optionally close the auth window/tab
+          window.close();
+        })
+        .catch((error) => {
+          console.error("Google OAuth failed:", error);
+          if (window.opener) {
+            window.opener.postMessage(
+              { type: "AUTH_FAILURE", error: "Authentication failed" },
+              "*"
+            );
+          }
+          window.close();
+        });
+    }
+  }, [code]);
+
+  return (
+    <div className="flex items-center justify-center gap-2 h-screen">
+      <Loader2 className="w-4 h-4 animate-spin" />
+      Authenticating...
+    </div>
+  );
+}

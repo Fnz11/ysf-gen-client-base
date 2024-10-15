@@ -1,0 +1,589 @@
+/* eslint-disable react/no-unescaped-entities */
+import * as React from "react";
+
+import { cn } from "@/lib/utils";
+import { useMediaQuery } from "@custom-react-hooks/use-media-query";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Filter, Forward, RotateCcw, X } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { PAGE_SIZE_OPTIONS } from "@/components/Public/GlobalConst";
+import SuffixClearInput from "@/components/Public/SuffixClearInput";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import DatePickerV2 from "@/components/ui/date-picker-v2";
+import { Switch } from "@/components/ui/switch";
+
+type Props = {
+  nama: string;
+  show: number;
+  createQueryString: any;
+};
+
+export const UsersFilter: React.FC<Props> = ({ ...props }) => {
+  const [open, setOpen] = React.useState(false);
+
+  // Add keyboard shortcut functionality
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === "\\") {
+        setOpen((prevOpen) => !prevOpen); // Toggle open state
+        event.preventDefault(); // Prevent any default behavior for Ctrl + \
+      }
+    };
+    const handleKeyExit = (event: KeyboardEvent) => {
+      if (event.key === "esc") {
+        setOpen((prevOpen) => false); // set open state to false
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleKeyExit);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keydown", handleKeyExit);
+    };
+  }, []);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{DATA_BUKU.trigger}</DialogTrigger>
+      <DialogContent className="sm:max-w-[40rem] sm:max-h-[40rem]">
+        <DialogHeader>
+          <DialogTitle>{DATA_BUKU.title}</DialogTitle>
+        </DialogHeader>
+        <FilterForm {...props} setOpen={setOpen} />
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const DATA_BUKU = {
+  title: (
+    <h1 className="flex items-center justify-center font-medium w-fit gap-2">
+      <Filter className="w-6 h-6 text-primary" /> Filter
+    </h1>
+  ),
+  trigger: (
+    <Button variant="outline" className="">
+      {" "}
+      <Filter className="w-4 h-4" />
+      Filter
+    </Button>
+  ),
+};
+
+const formSchema = z.object({
+  page: z.string().nullable().optional(),
+  limit: z.string().nullable().optional(),
+  user_id: z.string().nullable().optional(),
+  first_name: z.string().nullable().optional(),
+  last_name: z.string().nullable().optional(),
+  username: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
+  role: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  birth_date: z.union([z.date(), z.string()]).nullable().optional(),
+  gender: z.string().nullable().optional(),
+  email_verified: z.string().nullable().optional(),
+  provider_id: z.string().nullable().optional(),
+});
+
+const FilterForm: React.FC<Props & { setOpen: any }> = ({
+  nama,
+  setOpen,
+  show,
+  createQueryString,
+}) => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { push } = useRouter();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      page: "1",
+      limit: "10",
+      user_id: "",
+      first_name: "",
+      last_name: "",
+      username: "",
+      email: "",
+      role: "-",
+      phone: "",
+      birth_date: "",
+      gender: "-",
+      email_verified: "-",
+      provider_id: "",
+    },
+  });
+  const page_q = searchParams.get("page") || "1";
+  const limit_q = searchParams.get("limit") || "10";
+  const user_id_q = searchParams.get("user_id") || "";
+  const first_name_q = searchParams.get("first_name") || "";
+  const last_name_q = searchParams.get("last_name") || "";
+  const username_q = searchParams.get("username") || "";
+  const email_q = searchParams.get("email") || "";
+  const role_q = searchParams.get("role") || "-";
+  const phone_q = searchParams.get("phone") || "";
+  const birth_date_q = searchParams.get("birth_date") || "";
+  const gender_q = searchParams.get("gender") || "-";
+  const email_verified_q = searchParams.get("email_verified") || "";
+  const provider_id_q = searchParams.get("provider_id") || "";
+
+  React.useEffect(() => {
+    form.reset({
+      page: page_q,
+      limit: limit_q,
+      user_id: user_id_q,
+      first_name: first_name_q,
+      last_name: last_name_q,
+      username: username_q,
+      email: email_q,
+      role: role_q,
+      phone: phone_q,
+      birth_date: birth_date_q,
+      gender: gender_q,
+      email_verified: email_verified_q,
+      provider_id: provider_id_q,
+    });
+    form.trigger();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    page_q,
+    limit_q,
+    user_id_q,
+    first_name_q,
+    last_name_q,
+    username_q,
+    email_q,
+    role_q,
+    phone_q,
+    birth_date_q,
+    gender_q,
+    email_verified_q,
+    provider_id_q,
+  ]);
+
+  console.log(form.getValues());
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    // Do something with the form values.
+    // ✅ This will be type-safe and validated.
+    console.log(values);
+    push(
+      `${pathname}?${createQueryString({
+        page: 1,
+        limit: values.limit || "10",
+        user_id: values.user_id,
+        first_name: values.first_name,
+        last_name: values.last_name,
+        username: values.username,
+        email: values.email,
+        role: values.role == "-" ? "" : values.role,
+        phone: values.phone,
+        birth_date: values.birth_date,
+        gender: values.gender == "-" ? "" : values.gender,
+        email_verified:
+          values.email_verified == "-" ? "" : values.email_verified,
+        provider_id: values.provider_id,
+      })}`,
+      {
+        scroll: false,
+      }
+    );
+    setOpen(false);
+  }
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className={cn("grid items-start gap-4")}
+      >
+        <ScrollArea className="h-[22rem] md:h-[30rem]">
+          <div className="w-auto h-full flex flex-col gap-4 p-2 pr-3">
+            <FormField
+              control={form.control}
+              name="user_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel required={false}>User ID</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      suffix={
+                        <SuffixClearInput
+                          condition={(field.value?.length as number) > 0}
+                          onClick={() => field.onChange("")}
+                        />
+                      }
+                      placeholder="Enter User ID"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="first_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel required={false}>First Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      suffix={
+                        <SuffixClearInput
+                          condition={(field.value?.length as number) > 0}
+                          onClick={() => field.onChange("")}
+                        />
+                      }
+                      placeholder="Enter First Name"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="last_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel required={false}>Last Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      suffix={
+                        <SuffixClearInput
+                          condition={(field.value?.length as number) > 0}
+                          onClick={() => field.onChange("")}
+                        />
+                      }
+                      placeholder="Enter Last Name"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel required={false}>Username</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      suffix={
+                        <SuffixClearInput
+                          condition={(field.value?.length as number) > 0}
+                          onClick={() => field.onChange("")}
+                        />
+                      }
+                      placeholder="Enter Username"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel required={false}>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      suffix={
+                        <SuffixClearInput
+                          condition={(field.value?.length as number) > 0}
+                          onClick={() => field.onChange("")}
+                        />
+                      }
+                      placeholder="Enter Email"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <React.Suspense key={form.getValues("role") + (role_q as string)}>
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel required={false}>Role</FormLabel>
+                    <FormControl>
+                      <Select
+                        defaultValue={(field.value as string) || "-"}
+                        value={field.value as string}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-[50px] px-2 bg-white font-medium py-2">
+                          <SelectValue placeholder="All" />
+                        </SelectTrigger>
+                        <SelectContent className="min-w-[50px]">
+                          <SelectGroup>
+                            <SelectItem value={`-`}>All</SelectItem>
+                            <SelectItem value={`USER`}>User</SelectItem>
+                            <SelectItem value={`ADMIN`}>Admin</SelectItem>
+                            <SelectItem value={`SUPER_ADMIN`}>
+                              Super Admin
+                            </SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </React.Suspense>
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel required={false}>Phone</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      suffix={
+                        <SuffixClearInput
+                          condition={(field.value?.length as number) > 0}
+                          onClick={() => field.onChange("")}
+                        />
+                      }
+                      placeholder="Enter Phone"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="birth_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel required={false}>Birth Date</FormLabel>
+                  <FormControl>
+                    <DatePickerV2
+                      {...field}
+                      placeholder="Enter Birth Date"
+                      isDeletable
+                      onChange={(date) => field.onChange(date)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <React.Suspense
+              key={form.getValues("gender") + (gender_q as string)}
+            >
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel required={false}>Gender</FormLabel>
+                    <FormControl>
+                      <Select
+                        defaultValue={(field.value as string) || "-"}
+                        value={field.value as string}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-[50px] px-2 bg-white font-medium py-2">
+                          <SelectValue placeholder="All" />
+                        </SelectTrigger>
+                        <SelectContent className="min-w-[50px]">
+                          <SelectGroup>
+                            <SelectItem value={`-`}>All</SelectItem>
+                            <SelectItem value={`MALE`}>Male</SelectItem>
+                            <SelectItem value={`FEMALE`}>Female</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </React.Suspense>
+            <React.Suspense
+              key={
+                form.getValues("email_verified") + (email_verified_q as string)
+              }
+            >
+              <FormField
+                control={form.control}
+                name="email_verified"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel required={false}>Email Verified</FormLabel>
+                    <FormControl>
+                      <Select
+                        defaultValue={(field.value as string) || "-"}
+                        value={field.value as string}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-[50px] px-2 bg-white font-medium py-2">
+                          <SelectValue placeholder="All" />
+                        </SelectTrigger>
+                        <SelectContent className="min-w-[50px]">
+                          <SelectGroup>
+                            <SelectItem value={`-`}>All</SelectItem>
+                            <SelectItem value={`true`}>Verified</SelectItem>
+                            <SelectItem value={`false`}>Unverified</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </React.Suspense>
+
+            <FormField
+              control={form.control}
+              name="provider_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel required={false}>Provider ID</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      suffix={
+                        <SuffixClearInput
+                          condition={(field.value?.length as number) > 0}
+                          onClick={() => field.onChange("")}
+                        />
+                      }
+                      placeholder="Enter Provider ID"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <React.Suspense key={show}>
+              <FormField
+                control={form.control}
+                name="limit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel required={false}>Show Data</FormLabel>
+                    <FormControl>
+                      <Select
+                        defaultValue={show.toString()}
+                        value={field.value as string}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-[50px] px-2 bg-white font-medium py-2">
+                          <SelectValue placeholder="10 data" />
+                        </SelectTrigger>
+                        <SelectContent className="min-w-[50px]">
+                          <SelectGroup>
+                            {PAGE_SIZE_OPTIONS.map((pageSize) => (
+                              <SelectItem key={pageSize} value={`${pageSize}`}>
+                                {pageSize} data
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </React.Suspense>
+          </div>
+        </ScrollArea>
+        <div className="flex max-md:flex-col-reverse gap-2 justify-end mb-4 mx-auto">
+          <Button
+            variant={"outline"}
+            type="button"
+            className="w-full md:w-fit gap-1 px-4"
+            size={"md"}
+            onClick={() => setOpen(false)}
+          >
+            <X className="h-4 w-4" strokeWidth={1.5} />
+            Batal
+          </Button>
+          <Button
+            variant={"secondary"}
+            type="button"
+            className="w-full md:w-fit gap-1 px-4"
+            size={"md"}
+            onClick={() =>
+              form.reset({
+                page: "1",
+                limit: "10",
+                user_id: "",
+                first_name: "",
+                last_name: "",
+                username: "",
+                email: "",
+                role: "-",
+                phone: "",
+                birth_date: "",
+                gender: "-",
+                email_verified: "-",
+                provider_id: "",
+              })
+            }
+          >
+            <RotateCcw className="h-4 w-4" strokeWidth={1.5} />
+            Reset
+          </Button>
+          <Button
+            variant={"default"}
+            type="submit"
+            className="w-full md:w-fit gap-1 px-4"
+            size={"md"}
+          >
+            <Forward className="h-4 w-4" strokeWidth={1.5} />
+            Terapkan
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+};

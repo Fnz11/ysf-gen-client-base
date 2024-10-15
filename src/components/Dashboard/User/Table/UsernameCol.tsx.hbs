@@ -1,0 +1,57 @@
+"use client";
+
+import Copy from "@/components/Public/Copy";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Row } from "@tanstack/react-table";
+import { Clipboard, ClipboardCheck } from "lucide-react";
+import Image from "next/image";
+import React, { useState } from "react";
+
+const UsernameCol = ({ row }: { row: Row<any> }) => {
+  return (
+    <div className="flex flex-col">
+      <p className="font-medium flex items-center gap-1">
+        {row.original.username}
+        <TooltipProvider>
+          <Tooltip delayDuration={100}>
+            <TooltipTrigger asChild className="cursor-pointer">
+              <Image
+                src={
+                  row.original.role == "SUPER_ADMIN"
+                    ? "/SuperAdminEmblem.png"
+                    : row.original.role == "ADMIN"
+                    ? "/AdminEmblem.png"
+                    : "/UserEmblem.png"
+                }
+                className="h-4 w-4"
+                alt="profile"
+                width={20}
+                height={20}
+              />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                {row.original.role == "SUPER_ADMIN"
+                  ? "Super Admin"
+                  : row.original.role == "ADMIN"
+                  ? "Admin"
+                  : "User"}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </p>
+      <p className="max-w-[7rem] text-xs text-muted-foreground flex items-center gap-1">
+        <Copy data={row.original.user_id} />
+        <span className="truncate w-full">{row.original.user_id}</span>
+      </p>
+    </div>
+  );
+};
+
+export default UsernameCol;

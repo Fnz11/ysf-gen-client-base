@@ -1,0 +1,250 @@
+"use client";
+import { Card } from "@/components/ui/card";
+import React from "react";
+import {
+  ColumnDef,
+  SortingState,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  ArrowDownWideNarrow,
+  ArrowUpDown,
+  ArrowUpNarrowWide,
+  ArrowUpRight,
+  BookText,
+} from "lucide-react";
+import Link from "next/link";
+
+type Book = {
+  judul: string;
+  pengarang: string;
+  no_inventori: string;
+};
+
+export const Books: Book[] = [
+  {
+    judul: "Laskar Pelangi",
+    pengarang: "Andrea Hirata",
+    no_inventori: "B001/P.2024/SMAMTA",
+  },
+  {
+    judul: "Negeri 5 Menara",
+    pengarang: "A. Fuadi",
+    no_inventori: "B002/P.2024/SMAMTA",
+  },
+  {
+    judul: "Filosofi Teras",
+    pengarang: "Henry Manampiring",
+    no_inventori: "B003/P.2024/SMAMTA",
+  },
+  {
+    judul: "Dilan",
+    pengarang: "Pidi Baiq",
+    no_inventori: "B004/P.2024/SMAMTA",
+  },
+  {
+    judul: "Bumi Manusia",
+    pengarang: "Pramoedya Ananta Toer",
+    no_inventori: "B005/P.2024/SMAMTA",
+  },
+  {
+    judul: "Hujan di Bulan Juni",
+    pengarang: "Tere Liye",
+    no_inventori: "B006/P.2024/SMAMTA",
+  },
+  {
+    judul: "Sang Penakluk",
+    pengarang: "Dee Lestari",
+    no_inventori: "B007/P.2024/SMAMTA",
+  },
+  {
+    judul: "Ayat-ayat Cinta",
+    pengarang: "Habiburrahman El Shirazy",
+    no_inventori: "B008/P.2024/SMAMTA",
+  },
+  {
+    judul: "Laskar Pelangi",
+    pengarang: "Andrea Hirata",
+    no_inventori: "B009/P.2024/SMAMTA",
+  },
+  {
+    judul: "Negeri 5 Menara",
+    pengarang: "A. Fuadi",
+    no_inventori: "B010/P.2024/SMAMTA",
+  },
+];
+
+export const columns: ColumnDef<Book>[] = [
+  {
+    accessorKey: "judul",
+    header: (info) => (
+      <button
+        onClick={info.column.getToggleSortingHandler()}
+        className="header-table text-[0.8rem]"
+      >
+        Judul{" "}
+        {info.column.getIsSorted() === "asc" ? (
+          <ArrowUpNarrowWide strokeWidth={1.3} className="h-[0.9rem]" />
+        ) : info.column.getIsSorted() === "desc" ? (
+          <ArrowDownWideNarrow strokeWidth={1.3} className="h-[0.9rem]" />
+        ) : (
+          <ArrowUpDown strokeWidth={1.3} className="h-[0.9rem]" />
+        )}
+      </button>
+    ),
+    cell: (info) => (
+      <div className="break-words text-[0.8rem]">
+        {info.getValue() as string}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "pengarang",
+    header: (info) => (
+      <button
+        onClick={info.column.getToggleSortingHandler()}
+        className="header-table text-[0.8rem]"
+      >
+        pengarang{" "}
+        {info.column.getIsSorted() === "asc" ? (
+          <ArrowUpNarrowWide strokeWidth={1.3} className="h-[0.9rem]" />
+        ) : info.column.getIsSorted() === "desc" ? (
+          <ArrowDownWideNarrow strokeWidth={1.3} className="h-[0.9rem]" />
+        ) : (
+          <ArrowUpDown strokeWidth={1.3} className="h-[0.9rem]" />
+        )}
+      </button>
+    ),
+    cell: (info) => (
+      <div className="break-words text-[0.8rem]">
+        {info.getValue() as string}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "no_inventori",
+    header: (info) => (
+      <button
+        onClick={info.column.getToggleSortingHandler()}
+        className="header-table text-[0.8rem]"
+      >
+        no. inventori{" "}
+        {info.column.getIsSorted() === "asc" ? (
+          <ArrowUpNarrowWide strokeWidth={1.3} className="h-[0.9rem]" />
+        ) : info.column.getIsSorted() === "desc" ? (
+          <ArrowDownWideNarrow strokeWidth={1.3} className="h-[0.9rem]" />
+        ) : (
+          <ArrowUpDown strokeWidth={1.3} className="h-[0.9rem]" />
+        )}
+      </button>
+    ),
+    cell: (info) => (
+      <div className="break-words text-[0.8rem]">
+        {info.getValue() as string}
+      </div>
+    ),
+  },
+];
+
+const BukuTerbaru: React.FC<{ initialData?: Book[] }> = ({ initialData }) => {
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const table = useReactTable({
+    data: Books,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
+  });
+  return (
+    <Card className="col-span-1 md:col-span-3 w-full h-[39vh] p-4 pb-0 overflow-hidden relative flex flex-col gap-0 hover:ring-1 hover:ring-primary transition-all duration-200 ease-out">
+      <h1 className="text-xl flex items-center gap-2 w-fit font-medium px-1 pt-1">
+        <BookText
+          className="w-6 h-6 text-primary drop-shadow-md"
+          strokeWidth={1.3}
+        />
+        Buku Terbaru
+      </h1>
+      <ScrollArea className="h-full rounded-xl overflow-hidden pr-3">
+        <Table>
+          <TableHeader className="!border-b-0">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </ScrollArea>
+      <div className="absolute bottom-8 left-0 w-full h-[5rem] pointer-events-none bg-gradient-to-t from-card to-transparent z-[5] " />
+      <Link
+        className="flex items-center justify-center text-sm w-full py-3 text-slate-300 z-[10] font-light hover:scale-[1.2] hover:underline transition-all duration-300 ease-out relative group hover:text-slate-500"
+        href="/dashboard/buku"
+      >
+        <div
+          className={`absolute bottom-0 w-[150%] h-[10rem] pointer-events-none bg-gradient-to-t from-primary/[0.1] to-transparent z-[5] opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out`}
+        />
+        <span className="z-[6] relative flex items-center justify-center">
+          Selengkapnya
+          <ArrowUpRight strokeWidth={1.3} className="h-4" />
+        </span>
+      </Link>
+    </Card>
+  );
+};
+
+export default BukuTerbaru;

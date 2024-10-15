@@ -1,0 +1,68 @@
+"use client";
+
+import * as React from "react";
+import { useTheme } from "next-themes";
+
+import { Button } from "@/components/ui/button";
+import { AnimatePresence, motion } from "framer-motion";
+import { Moon, Sun } from "lucide-react";
+
+export function ModeToggle() {
+  const { setTheme, theme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  // This ensures that the component only renders on the client side
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <>
+        <Button
+          className="rounded-full w-11 h-11 bg-background"
+          variant="outline"
+          size="icon"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        ></Button>
+      </>
+    );
+  }
+
+  return (
+    <Button
+      className="rounded-full w-11 h-11 bg-background"
+      variant="outline"
+      size="icon"
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+    >
+      <AnimatePresence>
+        {theme === "dark" && (
+          <motion.div
+            initial={  { scale: 0, rotate: "-90deg" }  }
+            animate={  { scale: 1, rotate: "0deg" }  }
+            exit={  { scale: 0, rotate: "90deg" }  }
+            transition={  { duration: 0.5 }  }
+            className="absolute w-[1.2rem] h-[1.2rem]"
+          >
+            <Sun className="w-[1.2rem] h-[1.2rem]" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {theme === "light" && (
+          <motion.div
+            initial={  { scale: 0, rotate: "90deg" }  }
+            animate={  { scale: 1, rotate: "0deg" }  }
+            exit={  { scale: 0, rotate: "-90deg" }  }
+            transition={  { duration: 0.5 }  }
+            className="absolute w-[1.2rem] h-[1.2rem]"
+          >
+            <Moon className="w-[1.2rem] h-[1.2rem]" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <span className="sr-only">Switch Theme</span>
+    </Button>
+  );
+}

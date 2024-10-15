@@ -1,0 +1,13 @@
+import Cookies from "js-cookie";
+
+const handleLogout = () => {
+  Cookies.remove("session");
+  Cookies.remove("userId");
+  localStorage.removeItem("user");
+  localStorage.removeItem("session");
+  if (window) {
+    window.location.href = "/signin";
+  }
+};
+
+export default handleLogout;

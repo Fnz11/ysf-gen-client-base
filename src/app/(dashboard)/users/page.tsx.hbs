@@ -1,0 +1,93 @@
+"use server";
+import UserClient from "@/components/Dashboard/User/UsersClient";
+import PageContainer from "@/components/Layout/PageContainer";
+import TablelClientSkeleton from "@/components/Skeletons/TablelClientSkeleton";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { getAllUsers } from "@/utils/users-api";
+import { cookies } from "next/headers";
+import React, { Suspense } from "react";
+
+const breadcrumbItems = [
+  { title: "Dashboard", link: "/" },
+  { title: "Users", link: "/users" },
+];
+
+const User = async ({
+  searchParams,
+}: {
+  searchParams: UsersSearchParamsProps;
+}) => {
+  const token = cookies().get("session")?.value;
+  const page_q = searchParams.page || "1";
+  const limit_q = searchParams.limit || "10";
+  const user_id_q = searchParams.user_id || "";
+  const first_name_q = searchParams.first_name || "";
+  const last_name_q = searchParams.last_name || "";
+  const username_q = searchParams.username || "";
+  const email_q = searchParams.email || "";
+  const role_q = searchParams.role || "";
+  const phone_q = searchParams.phone || "";
+  const birth_date_q = searchParams.birth_date || "";
+  const gender_q = searchParams.gender || "";
+  const email_verified_q = searchParams.email_verified || "";
+  const provider_id_q = searchParams.provider_id || "";
+
+  // Fetch data from the backend
+  let users: any = {
+    data: {
+      data: {
+        users: [],
+        totalData: 0,
+      },
+    },
+  };
+  try {
+    users = await getAllUsers({
+      page: page_q,
+      limit: limit_q,
+      user_id: user_id_q,
+      first_name: first_name_q,
+      last_name: last_name_q,
+      username: username_q,
+      email: email_q,
+      role: role_q == "-" ? "" : role_q,
+      phone: phone_q,
+      birth_date: birth_date_q,
+      gender: gender_q == "-" ? "" : gender_q,
+      email_verified: email_verified_q == "-" ? "" : email_verified_q,
+      provider_id: provider_id_q,
+    }, token);
+  } catch (error) {
+    console.log(error);
+  }
+
+  return (
+    <PageContainer className="space-y-4 w-full">
+      {/* Breadcrumbs */}
+      <Breadcrumbs items={breadcrumbItems} />
+
+      <Suspense
+        fallback={<TablelClientSkeleton />}
+        key={
+          page_q +
+          limit_q +
+          user_id_q +
+          first_name_q +
+          last_name_q +
+          username_q +
+          email_q +
+          role_q +
+          phone_q +
+          birth_date_q +
+          gender_q +
+          email_verified_q +
+          provider_id_q
+        }
+      >
+        <UserClient initialData={users?.data?.data} />
+      </Suspense>
+    </PageContainer>
+  );
+};
+
+export default User;

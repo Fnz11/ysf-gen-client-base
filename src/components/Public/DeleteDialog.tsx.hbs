@@ -1,0 +1,173 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { Suspense, useEffect, useState } from "react";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+import { CircleCheckBig, CircleX, Trash2 } from "lucide-react";
+import { Mutation } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import ResultTable from "./ResultTable";
+
+type Props = {
+  trigger: React.ReactNode;
+  active: boolean;
+  name?: string;
+  onDelete: any;
+  onDeleteBatch?: any;
+  id?: string;
+  isBatch: boolean;
+};
+
+const DeleteDialog: React.FC<Props> = ({
+  trigger,
+  active,
+  name = "item ini",
+  onDelete,
+  id,
+  isBatch,
+  onDeleteBatch,
+}) => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
+        asChild
+        disabled={!active}
+        className={!active ? "pointer-events-none" : ""}
+      >
+        <span>{trigger}</span>
+      </DialogTrigger>
+      <Suspense fallback={""} key={open ? "open" : "closed"}>
+        <DeleteDialogContent
+          name={name}
+          onDelete={onDelete}
+          onDeleteBatch={onDeleteBatch}
+          id={id}
+          setOpen={setOpen}
+          isBatch={isBatch}
+        />
+      </Suspense>
+    </Dialog>
+  );
+};
+
+type DeleteDialogProps = {
+  name?: string;
+  onDelete: any;
+  onDeleteBatch?: any;
+  id?: string;
+  setOpen: (open: boolean) => void;
+  isBatch: boolean;
+};
+
+export const DeleteDialogContent: React.FC<DeleteDialogProps> = ({
+  onDelete,
+  onDeleteBatch,
+  name = "item ini",
+  id,
+  setOpen,
+  isBatch,
+}) => {
+  const [isFirstOpen, setIsFirstOpen] = useState(true);
+  const [resultData, setResultData] = useState<ResultDataProps[]>([]);
+  useEffect(() => {
+    if (onDelete.isSuccess && !onDelete.isError && !isBatch) {
+      setOpen(false);
+    }
+  }, [onDelete.isSuccess, onDelete.isError]);
+
+  useEffect(() => {
+    if (onDeleteBatch?.isSuccess && !onDeleteBatch?.isError) {
+      setResultData([...onDeleteBatch?.data?.data?.data]);
+    }
+  }, [onDeleteBatch?.isSuccess, onDeleteBatch?.isError]);
+
+  useEffect(() => {
+    if (!isFirstOpen) {
+      setIsFirstOpen(true);
+      setResultData([]);
+      if (onDelete) {
+        onDelete.reset();
+      }
+      if (onDeleteBatch) {
+        onDelete.reset();
+      }
+    }
+  }, []);
+
+  return (
+    <DialogContent
+      className={`sm:max-w-[35rem] ${
+        isBatch && onDelete.isFetching && !isFirstOpen && "gap-12"
+      } max-w-[98vw] z-[1000]`}
+    >
+      <DialogHeader>
+        <DialogTitle className="flex items-center justify-center font-medium w-fit gap-2">
+          <Trash2 className="md:w-7 md:h-7 w-6 h-6 text-destructive" />
+          Hapus Item
+        </DialogTitle>
+        <DialogDescription>
+          {isFirstOpen
+            ? `Apakah anda yakin akan menghapus ${name}?`
+            : "Item yang telah dihapus:"}
+        </DialogDescription>
+      </DialogHeader>
+      <DialogDescription
+        className={`flex flex-col border rounded-xl overflow-y-auto overflow-x-hidden ${
+          !isFirstOpen && isBatch ? "h-[12rem] opacity-100" : "h-0 opacity-0"
+        } transition-all duration-500 ease-out`}
+      >
+        <ResultTable
+          action={onDelete?.mutate}
+          actionText="Re-delete"
+          item={resultData}
+          loading={onDelete?.isPending}
+        />
+      </DialogDescription>
+
+      <DialogFooter className="w-full flex max-md:flex-col-reverse">
+        <DialogClose className="max-md:w-full">
+          <Button variant="outline" className="max-md:w-full">
+            {!onDeleteBatch?.isSuccess && isBatch ? "Batal" : "Keluar"}
+          </Button>
+        </DialogClose>
+        {(isFirstOpen || onDelete.isError || onDelete.isPending) && (
+          <motion.div
+            initial={ { opacity: 0 } }
+            animate={ { opacity: 1 } }
+            exit={ { opacity: 0 } }
+            className="max-md:w-full"
+          >
+            <Button
+              onClick={() => {
+                setIsFirstOpen(false);
+                if (!isBatch) {
+                  onDelete?.mutate(id);
+                } else {
+                  onDeleteBatch?.mutate();
+                }
+              }}
+              disabled={onDelete?.isPending || onDelete?.isLoading}
+              loading={onDelete?.isPending || onDelete?.isLoading}
+              variant="destructive"
+              className="max-md:w-full"
+            >
+              {onDelete.isError ? "Re-delete" : "Delete"}
+            </Button>
+          </motion.div>
+        )}
+      </DialogFooter>
+    </DialogContent>
+  );
+};
+
+export default DeleteDialog;

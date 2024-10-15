@@ -1,0 +1,32 @@
+"use client";
+import { ReactNode } from "react";
+
+// Query
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+const queryClient = new QueryClient();
+
+// Themes
+import { ThemeProvider as NextThemesProvider } from "next-themes";
+import { type ThemeProviderProps } from "next-themes/dist/types";
+import { Toaster } from "react-hot-toast";
+
+const BaseProvider = ({ children, ...props }: ThemeProviderProps) => {
+  return (
+    <>
+      <QueryClientProvider client={queryClient}>
+        <NextThemesProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+          {...props}
+        >
+          <Toaster />
+          {children}
+        </NextThemesProvider>
+      </QueryClientProvider>
+    </>
+  );
+};
+
+export default BaseProvider;

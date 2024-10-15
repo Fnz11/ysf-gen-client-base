@@ -1,0 +1,144 @@
+import axiosInstance from "@/lib/axios";
+import { z } from "zod";
+
+export type GoogleSignInDataProps = {
+  id_token: string;
+  access_token: string;
+};
+
+export const signinSchema = z.object({
+  email: z
+    .string()
+    .email({ message: "Invalid email address" })
+    .min(1, { message: "Email is required" })
+    .min(3, { message: "Email must be at least 3 characters long" }),
+  password: z.string().min(2),
+});
+
+export const registerSchema = z.object({
+  username: z
+    .string()
+    .min(1, { message: "Username is required" })
+    .min(3, { message: "Username must be at least 3 characters long" }),
+  email: z
+    .string()
+    .email({ message: "Invalid email address" })
+    .min(1, { message: "Email is required" })
+    .min(3, { message: "Email must be at least 3 characters long" }),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters long" }),
+  first_name: z
+    .string()
+    .min(1, { message: "First name is required" })
+    .min(3, { message: "First name must be at least 3 characters long" }),
+  last_name: z
+    .string()
+    .min(1, { message: "Last name is required" })
+    .min(3, { message: "Last name must be at least 3 characters long" }),
+  phone: z.string().min(1, { message: "Phone is required" }),
+  role: z.enum(["SISWA"]).optional(),
+});
+
+export const emailSchema = z.object({
+  email: z
+    .string()
+    .email({ message: "Invalid email address" })
+    .min(1, { message: "Email is required" })
+    .min(3, { message: "Email must be at least 3 characters long" }),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    email: z
+      .string()
+      .email({ message: "Invalid email address" })
+      .min(3, { message: "Email must be at least 3 characters long" }),
+    code: z
+      .string()
+      .min(6, { message: "Code must be at least 6 characters long" })
+      .max(6, { message: "Code must be at most 6 characters long" }),
+    new_password: z
+      .string()
+      .min(1, { message: "Password is required" })
+      .min(8, { message: "Password must be at least 8 characters long" }),
+    confirm_password: z.string().min(1, { message: "Password is required" }),
+  })
+  .refine((data) => data.new_password === data.confirm_password, {
+    message: "Passwords must match.",
+    path: ["confirm_password"],
+  });
+
+export const verifyEmailSchema = z.object({
+  email: z
+    .string()
+    .email({ message: "Invalid email address" })
+    .min(1, { message: "Email is required" })
+    .min(3, { message: "Email must be at least 3 characters long" }),
+  code: z
+    .string()
+    .min(1, { message: "Code is required" })
+    .min(6, { message: "Code must be 6 character" })
+    .max(6, {
+      message: "Code must be 6 character",
+    }),
+});
+
+export const updatePasswordSchema = z
+  .object({
+    user_id: z.string().min(1, { message: "User ID is required" }),
+    old_password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters long" }),
+    new_password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters long" }),
+    confirm_password: z.string().min(1, { message: "Password is required" }),
+  })
+  .refine((data) => data.new_password === data.confirm_password, {
+    message: "Passwords must match.",
+    path: ["confirm_password"],
+  });
+
+export type SignInSchemaProps = z.infer<typeof signinSchema>;
+export type RegisterSchemaProps = z.infer<typeof registerSchema>;
+export type EmailSchemaProps = z.infer<typeof emailSchema>;
+export type ResetPasswordSchemaProps = z.infer<typeof resetPasswordSchema>;
+export type VerifyEmailSchemaProps = z.infer<typeof verifyEmailSchema>;
+export type UpdatePasswordSchemaProps = z.infer<typeof updatePasswordSchema>;
+
+export async function signUp(data: RegisterSchemaProps) {
+  return await axiosInstance.post("/users/signup", data);
+}
+
+export async function verifyCode(data: VerifyEmailSchemaProps) {
+  return await axiosInstance.post("/users/verify-email", data);
+}
+
+export async function googleSignIn(data: GoogleSignInDataProps) {
+  return await axiosInstance.post("/users/signin/google", data);
+}
+
+export async function signin(data: SignInSchemaProps) {
+  return await axiosInstance.post("/users/signin", data);
+}
+
+export async function forgotPassword(data: EmailSchemaProps) {
+  return await axiosInstance.post("/users/forgot-password", data);
+}
+
+export async function checkCode(data: VerifyEmailSchemaProps) {
+  return await axiosInstance.post("/users/check-code", data);
+}
+
+export async function resetPassword(data: ResetPasswordSchemaProps) {
+  return await axiosInstance.post("/users/reset-password", data);
+} 
+
+export async function updatePassword(data: UpdatePasswordSchemaProps) {
+  console.log("[UPDATE]", data);
+  return await axiosInstance.patch("/users/update-password/" + data.user_id, {
+    old_password: data.old_password,
+    new_password: data.new_password,
+  });
+}

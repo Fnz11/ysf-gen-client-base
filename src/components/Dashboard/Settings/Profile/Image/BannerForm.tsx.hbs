@@ -1,0 +1,94 @@
+/* eslint-disable @next/next/no-img-element */
+import { Image, Pen } from "lucide-react";
+import React from "react";
+import { FileWithPath, useDropzone } from "react-dropzone";
+import toast from "react-hot-toast";
+
+type FileWithPreview = FileWithPath & {
+  preview: string;
+};
+
+const BannerForm = ({
+  form,
+  bannerImage,
+  setBannerImage,
+}: {
+  form: any;
+  bannerImage: string;
+  setBannerImage: React.Dispatch<React.SetStateAction<string>>;
+}) => {
+  // ============================== STATE ==============================
+
+  const [selectedBannerFile, setSelectedBannerFile] =
+    React.useState<FileWithPreview | null>(null);
+  const [isDialogBannerOpen, setDialogBannerOpen] = React.useState(false);
+
+  // ============================== HANDLE ==============================
+
+  const onDropBanner = React.useCallback(
+    (acceptedFiles: FileWithPath[]) => {
+      const file = acceptedFiles[0];
+      if (!file) {
+        alert("Selected image is too large!");
+        return;
+      }
+
+      const fileWithPreview = Object.assign(file, {
+        preview: URL.createObjectURL(file),
+      });
+
+      setSelectedBannerFile(fileWithPreview);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setBannerImage(base64String); // Update the avatar image state with base64 string
+      };
+      reader.readAsDataURL(file); // Read the file as a data URL
+    },
+    [setBannerImage]
+  );
+  const {
+    getRootProps: getRootPropsBanner,
+    getInputProps: getInputPropsBanner,
+  } = useDropzone({
+    onDrop: onDropBanner,
+    accept: { "image/*": [] },
+  });
+
+  // ============================== RENDER ==============================
+
+  return (
+    <>
+      <div
+        {...getRootPropsBanner()}
+        className="size-full aspect-[2.5/1] md:aspect-[4/1] relative group cursor-pointer"
+      >
+        <>
+          <div className="size-full relative flex items-center justify-center z-[11] rounded-t-3xl overflow-hidden">
+            <input {...getInputPropsBanner()} className="z-[10] size-full" />
+            <div className="absolute bg-white/20 dark:bg-white/[0.05] h-full aspect-square scale-0 group-hover:scale-[7] transition-all duration-700 rounded-full blur-[1.2rem] z-[10]" />
+          </div>
+          <div className="absolute h-[30%] aspect-square flex items-center justify-center bg-primary border-2 border-white rounded-full bottom-[-15%] right-[5%] hover:brightness-[1.1] opacity-0 group-hover:opacity-100 duration-200 transition-all z-[10]">
+            <Pen className="text-white" size={16} />
+          </div>
+        </>
+        <img
+          src={
+            bannerImage
+              ? bannerImage
+              : selectedBannerFile?.preview
+              ? selectedBannerFile.preview
+              : form.getValues("banner") || "/Bg.jpg"
+          }
+          height={250}
+          width={1000}
+          className="object-cover size-full rounded-t-3xl absolute left-0 top-0"
+          alt="image"
+        />
+      </div>
+    </>
+  );
+};
+
+export default BannerForm;

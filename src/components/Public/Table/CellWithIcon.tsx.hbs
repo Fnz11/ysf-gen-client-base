@@ -1,0 +1,231 @@
+import { cn } from "@/lib/utils";
+import { CellContext } from "@tanstack/react-table";
+import {
+  BookCheck,
+  BookCopy,
+  BookX,
+  Check,
+  IdCard,
+  Phone,
+  User,
+  Users,
+  UserX,
+  X,
+} from "lucide-react";
+import Image from "next/image";
+import React from "react";
+
+type Props = {
+  type:
+    | "book"
+    | "guru"
+    | "siswa"
+    | "gender"
+    | "status"
+    | "status_studi"
+    | "telp"
+    | "nim_nip"
+    | "sts_pjm"
+    | "role";
+  data: any;
+  className?: string;
+};
+
+const TextWithIcon: React.FC<Props> = ({ type, data, className }) => {
+  return (
+    <div
+      className={cn(
+        "mx-auto flex items-center justify-center gap-2 font-medium",
+        className
+      )}
+    >
+      {type == "book" ? (
+        <>
+          {(data as number)?.toLocaleString()}
+          {(data as number) == 0 ? (
+            <BookX
+              strokeWidth={1.2}
+              className="drop-shadow-sm h-5 w-5 text-destructive"
+            />
+          ) : (data as number) == 1 ? (
+            <BookCheck
+              strokeWidth={1.2}
+              className="drop-shadow-sm h-5 w-5 text-primary"
+            />
+          ) : (
+            <BookCopy
+              strokeWidth={1.2}
+              className="drop-shadow-sm h-5 w-5 text-blue"
+            />
+          )}
+        </>
+      ) : type == "guru" || type == "siswa" ? (
+        <>
+          {(data as number)?.toLocaleString()}{" "}
+          {(data as number) == 0 ? (
+            <UserX
+              strokeWidth={1.2}
+              className="drop-shadow-sm h-5 w-5 text-destructive"
+            />
+          ) : (data as number) == 1 ? (
+            <User
+              strokeWidth={1.2}
+              className="drop-shadow-sm h-5 w-5 text-primary"
+            />
+          ) : (
+            <Users
+              strokeWidth={1.2}
+              className="drop-shadow-sm h-5 w-5 text-blue"
+            />
+          )}
+        </>
+      ) : type == "sts_pjm" ? (
+        <>
+          {(data as string)?.trim().toUpperCase() == "Y" ? (
+            <>
+              <Check
+                strokeWidth={1.2}
+                className="drop-shadow-sm h-5 w-5 text-green-500"
+              />
+              Sudah
+            </>
+          ) : (
+            <>
+              <X
+                strokeWidth={1.2}
+                className="drop-shadow-sm h-5 w-5 text-destructive"
+              />
+              Belum
+            </>
+          )}
+        </>
+      ) : type == "status" ? (
+        <>
+          {(data as string)?.trim().toLowerCase() == "aktif" ? (
+            <Check
+              strokeWidth={1.2}
+              className="drop-shadow-sm h-5 w-5 text-green-500"
+            />
+          ) : (
+            <X
+              strokeWidth={1.2}
+              className="drop-shadow-sm h-5 w-5 text-destructive"
+            />
+          )}
+          <span className="capitalize">
+            {(data as string)?.toLowerCase() || "Non-aktif"}{" "}
+          </span>
+        </>
+      ) : type == "status_studi" ? (
+        <>
+          {(data as string)?.trim()?.toLowerCase() == "lulus" ? (
+            <Check
+              strokeWidth={1.2}
+              className="drop-shadow-sm h-5 w-5 text-green-500"
+            />
+          ) : (
+            <X
+              strokeWidth={1.2}
+              className="drop-shadow-sm h-5 w-5 text-destructive"
+            />
+          )}
+          <span className="capitalize">
+            {(data as string)?.toLowerCase() || "Belum Lulus"}{" "}
+          </span>
+        </>
+      ) : type == "role" ? (
+        <>
+          {data && (
+            <>
+              <Image
+                src={
+                  data == "SUPER_ADMIN"
+                    ? "/SuperAdminEmblem.png"
+                    : data == "ADMIN"
+                    ? "/AdminEmblem.png"
+                    : "/UserEmblem.png"
+                }
+                className="h-5 w-5"
+                alt="profile"
+                width={20}
+                height={20}
+              />
+              <span className="capitalize">{data as string} </span>
+            </>
+          )}
+        </>
+      ) : type == "gender" ? (
+        <>
+          {(data as string)?.trim() == "MALE" ? (
+            <svg
+              stroke="#60a5fa"
+              fill="#60a5fa"
+              strokeWidth="0"
+              viewBox="0 0 16 16"
+              height="15px"
+              width="15px"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fillRule="evenodd"
+                d="M9.5 2a.5.5 0 0 1 0-1h5a.5.5 0 0 1 .5.5v5a.5.5 0 0 1-1 0V2.707L9.871 6.836a5 5 0 1 1-.707-.707L13.293 2zM6 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8"
+              ></path>
+            </svg>
+          ) : (
+            (data as string)?.trim() == "FEMALE" && (
+              <svg
+                stroke="#f472b6"
+                fill="#f472b6"
+                strokeWidth="0"
+                viewBox="0 0 16 16"
+                height="15px"
+                width="15px"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8 1a4 4 0 1 0 0 8 4 4 0 0 0 0-8M3 5a5 5 0 1 1 5.5 4.975V12h2a.5.5 0 0 1 0 1h-2v2.5a.5.5 0 0 1-1 0V13h-2a.5.5 0 0 1 0-1h2V9.975A5 5 0 0 1 3 5"
+                ></path>
+              </svg>
+            )
+          )}
+          <span className="capitalize">
+            {(data as string)?.toLowerCase() || "-"}{" "}
+          </span>
+        </>
+      ) : type == "telp" ? (
+        <>
+          {!!data && (data as string)?.trim().length > 0 ? (
+            <>
+              <Phone
+                className="h-4 w-4 text-blue drop-shadow-sm"
+                strokeWidth={1.2}
+              />{" "}
+              {data as string}
+            </>
+          ) : (
+            "-"
+          )}
+        </>
+      ) : type == "nim_nip" ? (
+        <>
+          {!!data && (data as string)?.trim().length > 0 ? (
+            <>
+              <IdCard
+                className="h-4 w-4 text-primary drop-shadow-sm"
+                strokeWidth={1.2}
+              />
+              {data as string}
+            </>
+          ) : (
+            "-"
+          )}
+        </>
+      ) : (
+        ""
+      )}
+    </div>
+  );
+};
+
+export default TextWithIcon;

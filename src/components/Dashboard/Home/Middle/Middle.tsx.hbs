@@ -1,0 +1,37 @@
+import { Card } from "@/components/ui/card";
+import { CircleCheckBig } from "lucide-react";
+import React from "react";
+
+const DUMMY_DATA = {
+  jumlah_siswa: 6520,
+  jumlah_member: 4195,
+  jumlah_buku: 6233,
+  jumlah_guru: 129,
+};
+
+const Middle = () => {
+  return (
+    <Card className="col-span-1 md:col-span-4 row-span-1 md:row-span-2 size-full flex flex-col gap-4 justify-end items-center px-0 pb-4 max-md:h-[40vh]">
+      <div>
+        <div className="w-full flex justify-center">
+          <h1 className="flex items-center justify-center w-fit font-medium text-sm py-2 px-2 gap-1">
+            <CircleCheckBig className="text-blue h-4 w-4" strokeWidth={2} /> Jumlah Buku: {DUMMY_DATA.jumlah_buku}
+          </h1>
+          <h1 className="flex items-center justify-center w-fit font-medium text-sm py-2 px-2 gap-1">
+            <CircleCheckBig className="text-destructive h-4 w-4" strokeWidth={2} /> Jumlah Siswa: {DUMMY_DATA.jumlah_siswa}
+          </h1>
+        </div>
+        <div className="w-full flex justify-center">
+          <h1 className="flex items-center justify-center w-fit font-medium text-sm py-2 px-2 gap-1">
+            <CircleCheckBig className="text-primary h-4 w-4" strokeWidth={2} /> Jumlah Member: {DUMMY_DATA.jumlah_member}
+          </h1>
+          <h1 className="flex items-center justify-center w-fit font-medium text-sm py-2 px-2 gap-1">
+            <CircleCheckBig className="text-tertiary-dark h-4 w-4" strokeWidth={2} /> Jumlah Guru: {DUMMY_DATA.jumlah_guru}
+          </h1>
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+export default Middle;

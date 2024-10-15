@@ -1,0 +1,426 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+"use client";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import Header from "@/components/ui/title";
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  PaginationState,
+  SortingState,
+  useReactTable,
+} from "@tanstack/react-table";
+import { Factory, NotebookTabs, UserRoundPen, UsersRound } from "lucide-react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
+// import { KlasifikasiFilter } from "./KlasifikasiFilter";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback } from "react";
+import { debounce } from "lodash";
+import PaginationTable from "@/components/Public/Table/PaginationTable";
+import ShowDataFilterTable from "@/components/Public/Table/ShowDataFilterTable";
+import CariCepatFilter from "@/components/Public/Table/CariCepatFilter";
+import CellContextMenuTable from "@/components/Public/Table/CellContextMenuTable";
+import MobileMenu from "@/components/Public/MobileMenu";
+import { AnimatePresence } from "framer-motion";
+import DeleteDialog from "@/components/Public/DeleteDialog";
+import DownloadButton from "@/components/Public/DownloadButton";
+import CreateButton from "@/components/Public/CreateButton";
+import DeleteButton from "@/components/Public/DeleteButton";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { UsersTableColumns } from "./UsersTableColumns";
+import { useUsersStore } from "@/stores/UsersStore";
+import {
+  createBatchUsers,
+  createUser,
+  CreateUserSchemaProps,
+  deleteUser,
+  deleteUsersBatch,
+  downloadUsers,
+  getAllUsers,
+} from "@/utils/users-api";
+import { UsersFilter } from "./UsersFilter";
+import { Card } from "@/components/ui/card";
+import RefetchButton from "@/components/Public/Table/RefetchButton";
+import UsersInfo from "./UserInfo";
+import TableClientContainer from "@/components/Layout/TableClientContainer";
+import NoResultTable from "@/components/Public/Table/NoResultTable";
+import BaseTableHead from "@/components/Public/Table/BaseTable";
+
+type UsersClientProps = {
+  initialData: {
+    users: UserProps[];
+    totalData: number;
+  };
+};
+
+const UsersClient: React.FC<UsersClientProps> = ({ initialData }) => {
+  console.log(initialData);
+  // ============================== STATE & INIT ==============================
+  const {
+    setGlobalUsersData,
+    setRefetch,
+    setSelectedIdInfo,
+    openInfo,
+    setOpenInfo,
+    setHandleSelectInfo,
+    setIsSelectedRowInfo,
+  } = useUsersStore();
+  // Url Filter
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { push } = useRouter();
+
+  // Filter
+  const [usersData, setUsersData] = useState<UserProps[]>([
+    ...(initialData?.users || []),
+  ]);
+  const page_q = searchParams.get("page") || "1";
+  const limit_q = searchParams.get("limit") || "10";
+  const user_id_q = searchParams.get("user_id") || "";
+  const first_name_q = searchParams.get("first_name") || "";
+  const last_name_q = searchParams.get("last_name") || "";
+  const username_q = searchParams.get("username") || "";
+  const email_q = searchParams.get("email") || "";
+  const role_q = searchParams.get("role") || "-";
+  const phone_q = searchParams.get("phone") || "";
+  const birth_date_q = searchParams.get("birth_date") || "";
+  const gender_q = searchParams.get("gender") || "-";
+  const email_verified_q = searchParams.get("email_verified") || "";
+  const provider_id_q = searchParams.get("provider_id") || "";
+
+  const [{ searchQuery, searchShadow }, setSearchQuery] = useState({
+    searchQuery: username_q || "",
+    searchShadow: username_q || "",
+  });
+  const [{ pageIndex, pageSize }, setPagination] =
+    React.useState<PaginationState>({
+      pageIndex: parseInt(page_q) - 1,
+      pageSize: parseInt(limit_q),
+    });
+  const [paginationShadow, setPaginationShadow] = useState<number | string>(
+    page_q
+  );
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+
+  // Table
+  const table = useReactTable({
+    data: usersData,
+    columns: UsersTableColumns,
+    getCoreRowModel: getCoreRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onPaginationChange: setPagination,
+    getPaginationRowModel: getPaginationRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    pageCount: initialData?.totalData
+      ? Math.ceil(initialData?.totalData / parseInt(limit_q))
+      : 0,
+    state: {
+      sorting,
+      pagination: {
+        pageIndex: parseInt(page_q),
+        pageSize: parseInt(limit_q),
+      },
+    },
+    manualPagination: true,
+    manualFiltering: true,
+  });
+
+  // ============================== HANDLE ==============================
+  useEffect(() => {
+    if (!initialData) return;
+    setGlobalUsersData(initialData.users || []);
+    setUsersData(initialData?.users || []);
+  }, [initialData]);
+
+  // Refetching data
+  const queryUsers = useQuery({
+    queryKey: ["users", searchQuery, pageIndex, pageSize],
+    enabled: usersData?.length === 0,
+
+    queryFn: () =>
+      getAllUsers({
+        page: page_q,
+        limit: limit_q,
+        user_id: user_id_q,
+        first_name: first_name_q,
+        last_name: last_name_q,
+        username: username_q,
+        email: email_q,
+        role: role_q == "-" ? "" : role_q,
+        phone: phone_q,
+        birth_date: birth_date_q,
+        gender: gender_q == "-" ? "" : gender_q,
+        email_verified: email_verified_q,
+        provider_id: provider_id_q,
+      }),
+  });
+
+  // Refetching data
+  useEffect(() => {
+    if (!queryUsers.isSuccess) return;
+    setGlobalUsersData(queryUsers?.data?.data?.data?.users || []);
+    setUsersData(queryUsers?.data?.data?.data?.users || []);
+  }, [
+    queryUsers.isSuccess,
+    queryUsers.isFetched,
+    queryUsers.data,
+    queryUsers.isLoading,
+  ]);
+
+  // Delete one
+  const mutateDelete = useMutation({
+    mutationFn: (id: string) => deleteUser(id),
+    onSuccess: () => {
+      toast.success("Item deleted successfully");
+      queryUsers.refetch();
+    },
+    onError: (error) => {
+      console.log("[ERROR DELETE]: ", error);
+      toast.error("Item deleted failed");
+    },
+  });
+
+  // Create
+  const mutateCreateBook = useMutation({
+    mutationKey: ["createUsers"],
+    mutationFn: (data: CreateUserSchemaProps) => createUser(data),
+    onSuccess: (res) => {
+      toast.success("Users added successfully");
+    },
+    onError: (err) => {
+      toast.error("Users added failed");
+    },
+  });
+
+  // Delete batch
+  const mutateDeleteBatch = useMutation({
+    mutationFn: () => {
+      const selectedUsers = table.getSelectedRowModel().flatRows.map((row) => {
+        return row.original.user_id.toString();
+      });
+
+      return deleteUsersBatch(selectedUsers);
+    },
+    onSuccess: (res) => {
+      table.resetRowSelection();
+      queryUsers.refetch();
+    },
+    onError: (error) => {
+      console.log("[ERROR DELETE]: ", error);
+    },
+  });
+
+  // Create Batch
+  const mutateCreateBatch = useMutation({
+    mutationFn: (file: File) => createBatchUsers(file),
+    onSuccess: () => {
+      queryUsers.refetch();
+    },
+    onError: (error) => {
+      queryUsers.refetch();
+      console.log("[ERROR CREATE BATCH]: ", error);
+    },
+  });
+
+  const createQueryString = useCallback(
+    (params: Record<string, string | number | null>) => {
+      const newSearchParams = new URLSearchParams(searchParams?.toString());
+
+      for (const [key, value] of Object.entries(params)) {
+        if (!value || (typeof value == "string" && value.length == 0)) {
+          newSearchParams.delete(key);
+        } else {
+          newSearchParams.set(key, String(value));
+        }
+      }
+
+      return newSearchParams.toString();
+    },
+    [searchParams]
+  );
+
+  useEffect(() => { 
+    setRefetch(queryUsers.refetch);
+  }, []);
+
+
+  useEffect(() => {
+    push(
+      `${pathname}?${createQueryString({
+        page: page_q,
+        limit: limit_q,
+        user_id: user_id_q,
+        first_name: first_name_q,
+        last_name: last_name_q,
+        username: searchQuery,
+        email: email_q,
+        role: role_q == "-" ? "" : role_q,
+        phone: phone_q,
+        birth_date: birth_date_q,
+        gender: gender_q == "-" ? "" : gender_q,
+        email_verified: email_verified_q == "-" ? "" : email_verified_q,
+        provider_id: provider_id_q,
+      })}`,
+      {
+        scroll: false,
+      }
+    );
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    pageIndex,
+    pageSize,
+    searchQuery,
+    user_id_q,
+    first_name_q,
+    last_name_q,
+    email_q,
+    role_q,
+    phone_q,
+    birth_date_q,
+    gender_q,
+    email_verified_q,
+    provider_id_q,
+  ]);
+
+  const debouncedHandleChangePage = useCallback(
+    debounce((page: number) => {
+      table.setPageIndex(page - 1);
+    }, 500),
+    [table]
+  );
+
+  const debouncedHandleSearch = useCallback(
+    debounce((term: string) => {
+      setSearchQuery({ searchQuery: term, searchShadow: term });
+    }, 500), // 500ms delay
+    []
+  );
+
+  // ============================== RENDER ==============================
+  return (
+    <TableClientContainer>
+      {/* Top */}
+      <Card className="w-full flex justify-between items-center p-6 gap-4">
+        <Header
+          title="Users"
+          description="Manage and view users information, roles, and permissions."
+          Icon={UsersRound}
+        />
+
+        <MobileMenu className="flex max-md:flex-col-reverse gap-2 max-md:w-fit">
+          {/* Delete */}
+          <AnimatePresence>
+            <DeleteDialog
+              trigger={
+                <DeleteButton
+                  active={table?.getSelectedRowModel()?.flatRows?.length > 0}
+                />
+              }
+              active={table?.getSelectedRowModel()?.flatRows?.length > 0}
+              isBatch
+              onDeleteBatch={mutateDeleteBatch}
+              onDelete={mutateDelete}
+            />
+          </AnimatePresence>
+
+          {/* Create */}
+          <CreateButton
+            name="data-users"
+            handleDownload={async () => await downloadUsers(true)}
+            href={"/users/mutate/create"}
+            onCreate={mutateCreateBook}
+            onCreateBatch={mutateCreateBatch}
+          />
+        </MobileMenu>
+      </Card>
+
+      {/* Content */}
+      <Card className="w-full h-full flex flex-col gap-5">
+        {/* Filter2 */}
+        <div className="w-full flex justify-between gap-3">
+          <UsersFilter
+            nama={searchShadow}
+            show={table.getState().pagination.pageSize}
+            createQueryString={createQueryString}
+          />
+          {/* Search */}
+          <CariCepatFilter
+            placeholder="Search by username"
+            debouncedHandleSearch={debouncedHandleSearch} 
+            searchShadow={searchShadow}
+            setSearchQuery={setSearchQuery}
+          />
+          {/* Download */}
+          <DownloadButton name="data-users.xlsx" api={downloadUsers} />
+          {/* Refetch */}
+          <RefetchButton refetch={() => queryUsers.refetch()} />
+        </div>
+
+        {/* Table */}
+        <div className="h-[62vh] rounded-xl border overflow-hidden">
+          <ScrollArea className="h-full w-full overflow-y-auto">
+            <Table className="h-full">
+              <BaseTableHead table={table} />
+              <TableBody className="h-full w-full">
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <CellContextMenuTable
+                      infoProps={ {
+                        id: row.original?.user_id?.toString(),
+                        setId: setSelectedIdInfo,
+                        openState: openInfo,
+                        setOpen: setOpenInfo,
+                        setHandleSelect: setHandleSelectInfo,
+                        setIsSelectedRow: setIsSelectedRowInfo,
+                      } }
+                      key={row.id}
+                      editLink={`/users/mutate/${row.original.user_id}`}
+                      row={row}
+                      deleteAction={mutateDelete}
+                      className="h-16"
+                      id={row.original.user_id?.toString()}
+                    />
+                  ))
+                ) : (
+                  <NoResultTable colSpan={UsersTableColumns.length} />
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </div>
+
+        {/* Filter2 */}
+        <div className="w-full flex justify-between">
+          <ShowDataFilterTable table={table} />
+
+          <div>
+            <PaginationTable
+              debouncedHandleChangePage={debouncedHandleChangePage}
+              paginationShadow={paginationShadow}
+              setPaginationShadow={setPaginationShadow}
+              table={table}
+              totalPage={Math.ceil(initialData.totalData / pageSize)}
+            />
+          </div>
+        </div>
+      </Card>
+
+      <UsersInfo />
+    </TableClientContainer>
+  );
+};
+
+export default UsersClient;

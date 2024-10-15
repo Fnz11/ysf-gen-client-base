@@ -1,0 +1,43 @@
+import Link from "next/link";
+import { MenuIcon, PanelsTopLeft } from "lucide-react";
+
+import { Button, buttonVariants } from "@/components/ui/button";
+import { MenuSidebar } from "./Sidebar/MenuSidebar";
+import {
+  Sheet,
+  SheetHeader,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
+export function SheetMenu() {
+  return (
+    <Sheet>
+      <SheetTrigger
+        className={buttonVariants({
+          variant: "outline",
+          className: "lg:hidden h-8",
+          size: "icon",
+        })}
+        asChild
+      >
+        <MenuIcon size={12} />
+      </SheetTrigger>
+      <SheetContent className="sm:w-72 px-3 h-full flex flex-col" side="left">
+        <SheetHeader>
+          <Link
+            href="/"
+            className={buttonVariants({
+              variant: "link",
+              className: "flex items-center gap-1 justify-center pb-2 pt-1",
+            })}
+          >
+            <PanelsTopLeft className="w-8 h-8 mr-1" />
+            <h1 className="font-bold text-2xl">{{projectName}}</h1>
+          </Link>
+        </SheetHeader>
+        <MenuSidebar isOpen />
+      </SheetContent>
+    </Sheet>
+  );
+}

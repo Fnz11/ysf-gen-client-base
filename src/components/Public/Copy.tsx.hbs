@@ -1,0 +1,55 @@
+import React, { useState } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
+import { Clipboard, ClipboardCheck } from "lucide-react";
+
+type CopyProps = {
+  data: string;
+};
+
+const Copy: React.FC<CopyProps> = ({ data }) => {
+  const [isCopied, setIsCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(data);
+    setIsCopied(true);
+    setTimeout(() => {
+      setIsCopied(false);
+    }, 3000);
+  };
+  return (
+    <TooltipProvider>
+      {isCopied ? (
+        <>
+          <Tooltip open={isCopied}>
+            <TooltipTrigger asChild>
+              <ClipboardCheck className="h-[1.1rem] w-[1.1rem] text-primary" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Copied!</p>
+            </TooltipContent>
+          </Tooltip>
+        </>
+      ) : (
+        <>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Clipboard
+                className="h-[1.1rem] w-[1.1rem] text-muted-foreground hover:text-primary transition-all ease-in duration-100 cursor-pointer"
+                onClick={handleCopy}
+              />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Copy</p>
+            </TooltipContent>
+          </Tooltip>
+        </>
+      )}
+    </TooltipProvider>
+  );
+};
+
+export default Copy;

@@ -1,0 +1,73 @@
+import { NextRequest, NextResponse } from "next/server";
+
+export default async function middleware(req: NextRequest) {
+  const session = req.cookies.get("session");
+  const unprotectedRoutes = [
+    "/signin",
+    "/signup",
+    "/reset-password",
+    "/forgot-password",
+    "/oauth",
+    "/oauth/google",
+    "/verify-code",
+  ];
+
+  const isProtectedRoute =
+    !unprotectedRoutes.includes(req.nextUrl.pathname) &&
+    req.nextUrl.pathname !== "/signin";
+
+  // If it's a protected route and there's no session, redirect to signin
+  if (isProtectedRoute) {
+    if (!session) {
+      return NextResponse.redirect(new URL("/signin", req.url));
+    }
+    const checkAuth = await checkSession(session?.value);
+    if (!checkAuth || (checkAuth as any)?.status !== 200) {
+      return NextResponse.redirect(new URL("/signin", req.url));
+    }
+  }
+
+  // Continue with the request
+  return NextResponse.next();
+}
+
+async function checkSession(session: string | undefined): Promise<boolean> {
+  if (!session) return false;
+
+  try {
+    const response = await fetch(
+      process.env.NEXT_PUBLIC_BE_URL + "/users/check-session",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${session}`,
+        },
+      }
+    );
+
+    const data = await response.json(); 
+
+    if (!response.ok) {
+      console.error("Failed to check session:", response.statusText);
+      return false;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error checking session:", error);
+    return false;
+  }
+}
+
+export const config = {
+  matcher: [
+    /*
+     * Match all paths except for:
+     * - Static files (_next, favicon.ico)
+     * - Images in public folder
+     * - API routes
+     */
+    // "/((?!_next/static|_next/image|favicon.ico|public|api).*)",
+    "/((?!.*\\.).*)",
+  ],
+};

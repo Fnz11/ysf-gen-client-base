@@ -1,0 +1,161 @@
+/* eslint-disable react/no-unescaped-entities */
+import {
+  ContextMenuContent,
+  ContextMenuItem,
+} from "@/components/ui/context-menu";
+import { Dialog } from "@/components/ui/dialog";
+import {
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Info, SquarePen, X } from "lucide-react";
+import Link from "next/link";
+import React, { useState } from "react";
+import { DeleteDialogContent } from "../DeleteDialog";
+import { Mutation } from "@tanstack/react-query";
+import { Row } from "@tanstack/react-table";
+
+type TableActionProps = {
+  isDelete?: boolean;
+  isEdit?: boolean;
+  editLink?: string;
+  infoProps?: {
+    setId?: (value: string) => void;
+    setOpen: (value: boolean) => void;
+    openState: boolean;
+    setHandleSelect: (handleSelectInfo: () => void) => void;
+    setIsSelectedRow: (state: boolean) => void;
+  };
+  deleteAction?: Mutation;
+  isRightClick?: boolean;
+  row?: Row<any>;
+  name?: string;
+  id?: string;
+};
+
+const TableAction: React.FC<TableActionProps> = ({
+  infoProps,
+  deleteAction = () => {},
+  editLink = "",
+  isDelete = true,
+  isEdit = true,
+  isRightClick = false,
+  name,
+  id,
+  row,
+}) => {
+  const [openDelete, setOpenDelete] = useState(false);
+  const CONTENT = {
+    info: (
+      <button
+        onClick={() => {
+          if (infoProps && infoProps.setId && id) {
+            if (row) {
+              infoProps.setHandleSelect(() => row.toggleSelected());
+              infoProps.setIsSelectedRow(row.getIsSelected());
+            }
+            infoProps.setOpen(true);
+            infoProps.setId(id);
+          }
+        }  }
+        className="gap-1 items-center justify-start flex size-full px-3 py-2 w-full"
+      >
+        <Info className="h-4 w-4" strokeWidth={1.5} />
+        Info
+      </button>
+    ),
+    edit: (
+      <Link
+        className="gap-1 items-center justify-start flex size-full px-3 py-2"
+        href={editLink}
+      >
+        <SquarePen className="h-4 w-4" strokeWidth={1.5} />
+        Edit
+      </Link>
+    ),
+    delete: (
+      <button
+        onClick={() => setOpenDelete(true)}
+        className="gap-1 items-center justify-start flex size-full px-3 py-2 w-full"
+      >
+        <X className="h-4 w-4" strokeWidth={1.5} />
+        Delete
+      </button>
+    ),
+  };
+
+  if (!isRightClick) {
+    return (
+      <>
+        <DropdownMenuContent align="end">
+          {!!infoProps && (
+            <DropdownMenuItem className="p-0 md:!p-0">
+              {CONTENT?.info}
+            </DropdownMenuItem>
+          )}
+
+          {isEdit && (
+            <DropdownMenuItem className="p-0 md:!p-0">
+              {CONTENT?.edit}
+            </DropdownMenuItem>
+          )}
+
+          {isDelete && deleteAction && (
+            <DropdownMenuItem className="p-0 md:!p-0">
+              {CONTENT?.delete}
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+        {/* Delete */}
+        {isDelete && deleteAction && (
+          <Dialog open={openDelete} onOpenChange={setOpenDelete}>
+            <DeleteDialogContent
+              setOpen={setOpenDelete}
+              name={name}
+              onDelete={deleteAction as any}
+              isBatch={false}
+              id={id}
+            />
+          </Dialog>
+        )}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <ContextMenuContent>
+        {!!infoProps && (
+          <ContextMenuItem className="p-0 md:!p-0">
+            {CONTENT?.info}
+          </ContextMenuItem>
+        )}
+        {isEdit && (
+          <ContextMenuItem className="p-0 md:!p-0">
+            {CONTENT?.edit}
+          </ContextMenuItem>
+        )}
+        {isDelete && deleteAction && (
+          <ContextMenuItem className="p-0 md:!p-0">
+            {CONTENT?.delete}
+          </ContextMenuItem>
+        )}
+      </ContextMenuContent>
+
+      {/* Delete */}
+      {isDelete && deleteAction && (
+        <Dialog open={openDelete} onOpenChange={setOpenDelete}>
+          <DeleteDialogContent
+            setOpen={setOpenDelete}
+            name={name}
+            onDelete={deleteAction as any}
+            isBatch={false}
+            id={id}
+          />
+        </Dialog>
+      )}
+    </>
+  );
+};
+
+export default TableAction;

@@ -1,0 +1,83 @@
+import { CircleCheckBig, CircleX } from "lucide-react";
+import React from "react";
+import { motion } from "framer-motion";
+import { Button } from "../ui/button";
+import Copy from "./Copy";
+
+type Props = {
+  item: ResultDataProps[];
+  action: any;
+  actionText: string;
+  loading: boolean;
+};
+
+const ResultTable: React.FC<Props> = ({
+  item,
+  action,
+  actionText,
+  loading,
+}) => {
+  return (
+    <>
+      <div className="w-full flex items-center justify-center py-2 bg-foreground/[0.05] font-medium">
+        <div className="w-[30%] flex items-center justify-center">Id</div>
+        <div className="w-[40%] md:w-[50%] flex items-center justify-center">
+          Pesan
+        </div>
+        <div className="w-[30%] md:w-[20%] flex items-center justify-center">
+          Action
+        </div>
+      </div>
+      {item.length > 0 &&
+        item.map((item: any, i: number) => (
+          <div
+            key={i}
+            className={`w-full flex items-center justify-center py-2 ${
+              !item?.success && "bg-destructive/10"
+            } `}
+          >
+            <div className={`w-[15%] flex gap-2 items-center justify-center `}>
+              {item?.success ? (
+                <CircleCheckBig
+                  className="text-success h-4 w-4"
+                  strokeWidth={2}
+                />
+              ) : (
+                <CircleX className="text-destructive h-4 w-4" strokeWidth={2} />
+              )}
+              <Copy data={item?.id} />
+            </div>
+            <div className="w-[15%] flex items-center text-start justify-start max-md:text-sm truncate">
+              {item?.id}
+            </div>
+            <div className="w-[40%] md:w-[50%] flex items-center justify-center break-all max-md:text-sm">
+              {item?.message}
+            </div>
+            <div className="w-[30%] md:w-[20%] flex items-center justify-center">
+              {item?.success ? (
+                "-"
+              ) : (
+                <motion.div
+                  initial={  { opacity: 0 }  }
+                  animate={  { opacity: 1 }  }
+                  exit={  { opacity: 0 }  }
+                >
+                  <Button
+                    variant="default"
+                    size={"sm"}
+                    onClick={() => action(item?.data)}
+                    disabled={loading}
+                    loading={loading}
+                  >
+                    {actionText}
+                  </Button>
+                </motion.div>
+              )}
+            </div>
+          </div>
+        ))}
+    </>
+  );
+};
+
+export default ResultTable;

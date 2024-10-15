@@ -1,0 +1,208 @@
+"use client";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import Header from "@/components/ui/title";
+import { CreateUserSchemaProps, UpdateUserSchemaProps } from "@/utils/users-api";
+import { ArrowRightIcon, Loader2, ReceiptText, Save } from "lucide-react";
+import React, { Suspense, useEffect, useState } from "react";
+import { FormProps } from "react-hook-form";
+import { z } from "zod";
+
+const GeneralForm = ({
+  form,
+  initData,
+  handleNextStep,
+  loading,
+  disabled,
+  showPassword = true,
+  showEmail = true,
+  disabledEmail,
+  disabledRole,
+}: {
+  form: FormProps<CreateUserSchemaProps | UpdateUserSchemaProps>;
+  initData: CreateUserSchemaProps | UpdateUserSchemaProps;
+  handleNextStep?: () => void;
+  loading?: boolean;
+  disabled?: boolean;
+  showPassword?: boolean;
+  disabledRole?: boolean;
+  showEmail?: boolean;
+  disabledEmail?: boolean;
+}) => {
+  const { control } = form;
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!isLoaded) {
+      setIsLoaded(true);
+    }
+  }, [isLoaded]);
+
+  // =============== RENDER ================
+
+  return (
+    <Card className="relative overflow-hidden w-full">
+      {disabled && (
+        <div className="absolute top-0 left-0 bg-loader size-full flex items-center justify-center z-[2]">
+          <Loader2 className="text-primary animate-spin" size={56} />
+        </div>
+      )}
+
+      {/* Header */}
+      <CardHeader>
+        <Header
+          Icon={ReceiptText}
+          title="General"
+          description="Used to identify your store in the marketplace."
+        />
+      </CardHeader>
+
+      {/* Username */}
+      <CardContent className="grid gap-4">
+        <Separator className="mb-6" />
+
+        <FormField
+          control={control}
+          name="username"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Username</FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  placeholder="Input username here"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Email */}
+        {showEmail && (
+          <FormField
+            control={control}
+            // disabled
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    disabled={disabledEmail}
+                    type="email"
+                    placeholder="Input email here"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* Role */}
+
+        <Suspense
+          key={initData && initData?.role ? initData.role.toString() : ""}
+          fallback=""
+        >
+          <FormField
+            control={control}
+            name="role"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Role</FormLabel>{" "}
+                {isLoaded ? (
+                  <Select
+                    disabled={disabledRole}
+                    defaultValue={field.value}
+                    value={field.value}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                    } }
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="USER">User</SelectItem>
+                      <SelectItem value="ADMIN">Admin</SelectItem>
+                      <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input placeholder="Select a role" />
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </Suspense>
+
+        {/* Password */}
+        {showPassword && (
+          <FormField
+            control={control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel required={!initData}>Password</FormLabel>
+                <FormControl>
+                  <PasswordInput placeholder="Input password here" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        <Separator className="mt-6" />
+      </CardContent>
+      <CardFooter className="px-6 py-4 justify-end">
+        {loading != undefined ? (
+          <Button loading={loading} disabled={loading} size={"lg"}>
+            <Save className="h-5 w-5" strokeWidth={1.2} />
+            Save
+          </Button>
+        ) : (
+          <>
+            <Button onClick={handleNextStep} size={"lg"}>
+              Next
+              <ArrowRightIcon className="h-4 w-4 mt-[0.1rem]" />
+            </Button>
+          </>
+        )}
+      </CardFooter>
+    </Card>
+  );
+};
+
+export default GeneralForm;

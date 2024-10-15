@@ -1,0 +1,37 @@
+import { Button } from "@/components/ui/button";
+import { ArrowLeftCircle, Save, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import React from "react";
+
+type Props = {
+  loading: boolean;
+};
+
+const MutateButton: React.FC<Props> = ({ loading }) => {
+  const router = useRouter();
+  return (
+    <div className="flex gap-2 mb-2">
+      <Button
+        variant={"default"}
+        type="submit"
+        loading={loading}
+        disabled={loading}
+        className="ml-auto"
+      >
+        <Save className="h-5 w-5" strokeWidth={1.5} />
+        Save
+      </Button>
+      <Button
+        onClick={() => router.back()}
+        variant={"destructive"}
+        type="button"
+        className="max-md:hidden"
+      >
+        <ArrowLeftCircle className="h-5 w-5" strokeWidth={1.5} />
+        Back
+      </Button>
+    </div>
+  );
+};
+
+export default MutateButton;

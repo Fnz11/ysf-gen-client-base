@@ -1,0 +1,253 @@
+import TextWithIcon from "@/components/Public/Table/CellWithIcon";
+import SortedHeadTable from "@/components/Public/Table/SortedHeadTable";
+import TableAction from "@/components/Public/Table/TableAction";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useUsersStore } from "@/stores/UsersStore";
+import { deleteUser } from "@/utils/users-api";
+import { useMutation } from "@tanstack/react-query";
+import { CellContext, ColumnDef } from "@tanstack/react-table";
+import { Check, EllipsisVertical, Key, X } from "lucide-react";
+import Image from "next/image";
+import toast from "react-hot-toast";
+import UsernameCol from "./Table/UsernameCol";
+import { Badge } from "@/components/ui/badge";
+
+const Menu = ({ info }: { info: CellContext<any, any> }) => {
+  const {
+    openInfo,
+    setOpenInfo,
+    setSelectedIdInfo,
+    setIsSelectedRowInfo,
+    setHandleSelectInfo,
+    refetch,
+  } = useUsersStore();
+
+  const mutateDelete = useMutation({
+    mutationFn: (id: string) => deleteUser(id),
+    onSuccess: () => {
+      toast.success("Item berhasi dihapus");
+      refetch();
+    },
+    onError: (error) => {
+      console.log("[ERROR DELETE]: ", error);
+      toast.error("Item gagal dihapus");
+    },
+  });
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        <EllipsisVertical className="h-4 w-4" strokeWidth={1.5} />
+      </DropdownMenuTrigger>
+      <TableAction
+        infoProps={ {
+          setId: setSelectedIdInfo,
+          openState: openInfo,
+          setOpen: setOpenInfo,
+          setHandleSelect: setHandleSelectInfo,
+          setIsSelectedRow: setIsSelectedRowInfo,
+        } }
+        row={info.row}
+        deleteAction={mutateDelete as any}
+        editLink={`/user/mutate/${info.getValue()}`}
+        id={info.getValue() as string}
+      />
+    </DropdownMenu>
+  );
+};
+
+export const UsersTableColumns: ColumnDef<UserProps | any>[] = [
+  {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    minSize: 2,
+    maxSize: 2,
+    size: 2,
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "image",
+    header: (info) => <SortedHeadTable info={info} title="IMAGE" disabled />,
+    cell: ({ row }) => (
+      <div className="flex items-center justify-center h-12 w-12 relative">
+        <div className="bg-white h-5 w-5 p-[0.2rem] rounded-full absolute top-[-0.2rem] right-[-0.2rem]">
+          <TooltipProvider>
+            <Tooltip delayDuration={200}>
+              <TooltipTrigger>
+                {row?.original?.local_user_id ? (
+                  <>
+                    <Key className="size-full text-secondary" strokeWidth={3} />
+                  </>
+                ) : (
+                  <>
+                    <Image
+                      src={"/Google.png"}
+                      alt="google"
+                      className="size-full"
+                      width={100}
+                      height={100}
+                    />
+                  </>
+                )}
+              </TooltipTrigger>
+              <TooltipContent className="mb-1">
+                <p>
+                  {row?.original?.local_user_id ? "Local User" : "Google User"}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        <Image
+          src={row?.original?.image?.url || "/Avatar.png"}
+          alt="profile"
+          className="size-full rounded-full"
+          width={100}
+          height={100}
+        />
+      </div>
+    ),
+    minSize: 2,
+    maxSize: 2,
+    size: 2,
+    enableSorting: false,
+  },
+  // Username
+  {
+    accessorKey: "username",
+    header: (info) => <SortedHeadTable info={info} title="Username" />,
+
+    cell: ({ row }) => {
+      return <UsernameCol row={row} />;
+    },
+    minSize: 15,
+    maxSize: 15,
+    size: 15,
+  },
+  {
+    accessorKey: "email",
+    header: (info) => <SortedHeadTable info={info} title="Email" />,
+
+    cell: (info) => (
+      <div className="gap-2 font-medium">{info.getValue() as string}</div>
+    ),
+    minSize: 15,
+    maxSize: 15,
+    size: 15,
+  },
+  {
+    accessorKey: "phone",
+    header: (info) => <SortedHeadTable info={info} title="Phone" disabled />,
+
+    cell: (info) => (
+      <div className="gap-2 font-medium capitalize">
+        <TextWithIcon type="telp" data={info.getValue() as string} />
+      </div>
+    ),
+    minSize: 15,
+    maxSize: 15,
+    size: 15,
+  },
+  {
+    accessorKey: "address",
+    header: (info) => <SortedHeadTable info={info} title={"Address"} />,
+    cell: ({ row }) => {
+      return (
+        <div className="size-full flex flex-col justify-center truncate">
+          <p className="font-medium flex items-center gap-2">
+            {row.original?.country || "-"}
+          </p>
+          <p className="flex items-center text-xs text-muted-foreground tracking-tighter gap-2">
+            {row.original?.province || "-"}
+          </p>
+        </div>
+      );
+    },
+    minSize: 20,
+    maxSize: 20,
+    size: 20,
+    enableSorting: false,
+  },
+  {
+    accessorKey: "created_at",
+    header: (info) => <SortedHeadTable info={info} title={"CREATED AT"} />,
+    cell: (info) => (
+      <div className="gap-2 font-medium capitalize">
+        {info.getValue()
+          ? new Date((info as any)?.getValue())?.toLocaleDateString()
+          : "-"}
+      </div>
+    ),
+    minSize: 12,
+    maxSize: 12,
+    size: 12,
+  },
+
+  {
+    accessorKey: "is_email_verified",
+    header: (info) => <SortedHeadTable info={info} title={"INFO"} />,
+    cell: ({ row }) => (
+      <div className="size-full flex items-center justify-center">
+        <Badge
+          className="py-[0.15rem] px-2 rounded-md text-xs flex items-center gap-1"
+          variant={
+            row?.original?.email_verified || row?.original?.provider_id
+              ? "success"
+              : "failed"
+          }
+        >
+          {row?.original?.email_verified || row?.original?.provider_id ? (
+            <>
+              <Check className="h-4 w-4" />
+              Verified
+            </>
+          ) : (
+            <>
+              <X className="h-4 w-4" />
+              Unverified
+            </>
+          )}
+        </Badge>
+      </div>
+    ),
+    minSize: 10,
+    maxSize: 10,
+    size: 10,
+  },
+  {
+    accessorKey: "user_id",
+
+    header: (info) => <span></span>,
+    cell: (info) => <Menu info={info} />,
+    minSize: 2,
+    maxSize: 2,
+    size: 2,
+  },
+];

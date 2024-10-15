@@ -1,0 +1,14 @@
+import SettingsBar from "@/components/Dashboard/Settings/SettingsBar/SettingsBar";
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <div className="grid h-[calc(100vh-7.61rem)] overflow-hidden w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+      <SettingsBar />
+      {children}
+    </div>
+  );
+}

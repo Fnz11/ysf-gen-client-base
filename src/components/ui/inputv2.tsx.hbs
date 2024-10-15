@@ -1,0 +1,46 @@
+import React from "react";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "./form";
+
+type InputV2Props = {
+  form: any;
+  label: string;
+  name: string;
+  placeholder: string;
+};
+
+const InputV2: React.FC<InputV2Props> = ({
+  form,
+  label,
+  name,
+  placeholder,
+}) => {
+  return (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex w-full items-center justify-center border border-foreground/20 rounded-lg overflow-hidden bg-background/35 p-0">
+          <FormLabel className="w-[25%] flex items-center justify-start h-full text-md border-r border-foreground/20">
+            {label}
+          </FormLabel>
+          <FormControl>
+            <input
+              className="w-[75%] h-full p-1 bg-transparent outline-none ring-0"
+              placeholder={placeholder}
+              {...field}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+};
+
+export default InputV2;

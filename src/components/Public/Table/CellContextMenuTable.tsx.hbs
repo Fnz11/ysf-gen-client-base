@@ -1,0 +1,66 @@
+import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { flexRender, Row } from "@tanstack/react-table";
+import React from "react";
+import TableAction from "./TableAction";
+import { cn } from "@/lib/utils";
+
+type Props = {
+  row: Row<any>;
+  editLink: string;
+  deleteAction: any;
+  infoProps?: {
+    id: string;
+    setId?: (value: string) => void;
+    setOpen: (value: boolean) => void;
+    openState: boolean;
+    setHandleSelect: (handleSelectInfo: () => void) => void;
+    setIsSelectedRow: (state: boolean) => void;
+  };
+  id?: string;
+  className?: string;
+};
+
+const CellContextMenuTable: React.FC<Props> = ({
+  row,
+  deleteAction,
+  editLink,
+  infoProps,
+  className,
+  id,
+}) => {
+  return (
+    <TableRow
+      key={row.id}
+      data-state={row.getIsSelected() && "selected"}
+      className="relative"
+    >
+      {row.getVisibleCells().map((cell, i) => (
+        <TableCell
+          style={  { width: cell.column.getSize() + "rem" }  }
+          key={cell.id}
+          className="h-full"
+        >
+          <ContextMenu>
+            <ContextMenuTrigger className="w-full h-full">
+              <div className={cn("w-full h-12 flex items-center", className)}>
+                {" "}
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </div>
+            </ContextMenuTrigger>
+            <TableAction
+              infoProps={infoProps}
+              isRightClick
+              row={row}
+              editLink={editLink}
+              deleteAction={deleteAction}
+              id={id}
+            />
+          </ContextMenu>
+        </TableCell>
+      ))}
+    </TableRow>
+  );
+};
+
+export default CellContextMenuTable;

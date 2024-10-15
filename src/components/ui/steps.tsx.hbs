@@ -1,0 +1,70 @@
+import React from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./tooltip";
+
+type StepsProps = {
+  steps: {
+    icon: any;
+    title: string;
+  }[];
+  currentStep: number;
+  setCurrentStep: (step: number) => void;
+};
+
+const Steps: React.FC<StepsProps> = ({
+  steps,
+  currentStep,
+  setCurrentStep,
+}) => {
+  return (
+    <>
+      {steps.map(({ icon: Icon, title }, id) => (
+        <div
+          key={id}
+          className={`flex items-center ${
+            id != steps.length - 1 ? "w-full" : "w-fit"
+          }`}
+        >
+          <TooltipProvider>
+            <Tooltip delayDuration={100}>
+              <TooltipTrigger asChild>
+                <div
+                  onClick={() => setCurrentStep(id + 1)}
+                  className={`border-2 ${
+                    currentStep >= id + 2
+                      ? "bg-primary"
+                      : currentStep == id + 1
+                      ? "bg-muted border-primary"
+                      : "bg-muted"
+                  } cursor-pointer rounded-full p-3 transition-all duration-200 ease-in`}
+                >
+                  {Icon ? <Icon className="text-secondary" size={26} strokeWidth={1.2} /> : ""}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div>{title}</div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          {id != steps.length - 1 ? (
+            <div
+              className={`${
+                currentStep >= id + 2
+                  ? "bg-primary"
+                  : currentStep + 1 == id + 1
+                  ? "bg-muted border-primary"
+                  : "bg-muted"
+              } h-[0.1rem] w-full transition-all duration-200 ease-in`}
+            />
+          ) : null}
+        </div>
+      ))}
+    </>
+  );
+};
+
+export default Steps;

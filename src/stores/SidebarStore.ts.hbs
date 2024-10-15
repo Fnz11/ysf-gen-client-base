@@ -1,0 +1,17 @@
+import axios from "axios";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+
+const sidebarStore = (set: any) => ({
+  isOpenSidebar: true,
+  toggleSidebar: (state: boolean) =>
+    set((isOpenSidebar: boolean) => ({
+      isOpenSidebar: state,
+    })),
+});
+
+export const useSidebarStore = create(
+  persist(sidebarStore, {
+    name: "sidebar-store",
+  })
+);

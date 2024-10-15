@@ -1,0 +1,131 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+"use client";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Form } from "@/components/ui/form";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  Image as ImageIcon,
+  Loader2,
+  Pen,
+  Save,
+} from "lucide-react";
+import React, { useEffect } from "react";
+import { useForm, UseFormReturn } from "react-hook-form";
+import { z } from "zod";
+import AvatarForm from "@/components/Dashboard/Settings/Profile/Image/AvatarForm";
+import BannerForm from "@/components/Dashboard/Settings/Profile/Image/BannerForm";
+import { CreateUserSchemaProps, UpdateUserSchemaProps } from "@/utils/users-api";
+import Header from "@/components/ui/title";
+import { Separator } from "@/components/ui/separator";
+
+const ImageForm = ({
+  form,
+  initData,
+  handleNextStep,
+  handlePrevStep,
+  loading,
+  disabled,
+}: {
+  form: UseFormReturn<CreateUserSchemaProps | UpdateUserSchemaProps>;
+  initData: CreateUserSchemaProps | UpdateUserSchemaProps;
+  handleNextStep?: () => void;
+  handlePrevStep?: () => void;
+  loading?: boolean;
+  disabled?: boolean;
+}) => {
+  // Avatar
+  const [avatarImage, setAvatarImage] = React.useState<string>("");
+
+  // Banner
+  const [bannerImage, setBannerImage] = React.useState<string>("");
+
+  useEffect(() => {
+    if (initData) {
+      setAvatarImage((initData as any)?.image?.url);
+      setBannerImage((initData as any)?.banner?.url);
+    }
+  }, [initData]);
+
+  useEffect(() => {
+    if (avatarImage) {
+      form.setValue("image", avatarImage);
+    }
+  }, [avatarImage]);
+
+  useEffect(() => {
+    if (bannerImage) {
+      form.setValue("banner", bannerImage);
+    }
+  }, [bannerImage]);
+
+  return (
+    <>
+      <Card className="relative overflow-hidden size-full">
+        {disabled && (
+          <div className="absolute top-0 left-0 bg-loader size-full flex items-center justify-center z-[1000]">
+            <Loader2 className="text-primary animate-spin" size={56} />
+          </div>
+        )}
+
+        {/* Header */}
+        <CardHeader className="relative w-full mb-10 flex items-center justify-center">
+          {/* Banner */}
+          <BannerForm
+            form={form}
+            bannerImage={bannerImage}
+            setBannerImage={setBannerImage}
+          />
+
+          {/* Avatar */}
+          <AvatarForm
+            form={form}
+            userData={initData}
+            avatarImage={avatarImage}
+            setAvatarImage={setAvatarImage}
+          />
+        </CardHeader>
+
+        {/* Content */}
+
+        <CardContent className="grid gap-4">
+          <Header
+            Icon={ImageIcon}
+            title="Image"
+            description="Used to identify your store in the marketplace."
+          />
+          <Separator className="mt-3" />
+        </CardContent>
+        <CardFooter className="px-6 py-4 flex items-center justify-end gap-3">
+          {loading != undefined ? (
+            <Button loading={loading} disabled={loading} size={"lg"}>
+              <Save className="h-5 w-5" strokeWidth={1.2} />
+              Save
+            </Button>
+          ) : (
+            <>
+              <Button onClick={handlePrevStep} size={"lg"}>
+                <ArrowLeftIcon className="h-4 w-4 mt-[0.1rem]" />
+                Back
+              </Button>
+              <Button onClick={handleNextStep} size={"lg"}>
+                Next
+                <ArrowRightIcon className="h-4 w-4 mt-[0.1rem]" />
+              </Button>
+            </>
+          )}
+        </CardFooter>
+      </Card>
+    </>
+  );
+};
+
+export default ImageForm;

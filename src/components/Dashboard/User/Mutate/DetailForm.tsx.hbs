@@ -1,0 +1,329 @@
+"use client";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import DatePickerV2 from "@/components/ui/date-picker-v2";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import PhoneInput from "@/components/ui/phone-input";
+import { Separator } from "@/components/ui/separator";
+import Header from "@/components/ui/title";
+import { cn } from "@/lib/utils";
+import { CreateUserSchemaProps, UpdateUserSchemaProps } from "@/utils/users-api";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ContactRound,
+  Loader2,
+  Save,
+} from "lucide-react";
+import React from "react";
+import { FormProps } from "react-hook-form";
+
+const DetailForm = ({
+  form,
+  initData,
+  handleNextStep,
+  handlePrevStep,
+  loading,
+  disabled,
+}: {
+  form: FormProps<CreateUserSchemaProps | UpdateUserSchemaProps>;
+  initData: CreateUserSchemaProps | UpdateUserSchemaProps;
+  handleNextStep?: () => void;
+  handlePrevStep?: () => void;
+  loading?: boolean;
+  disabled?: boolean;
+}) => {
+  // =============== HOOKS ================
+  const { control } = form;
+
+  // =============== HANDLE ================
+
+  // =============== RENDER ================
+
+  return (
+    <Card className="relative overflow-hidden size-full">
+      {disabled && (
+        <div className="absolute top-0 left-0 bg-loader size-full flex items-center justify-center z-[1000]">
+          <Loader2 className="text-primary animate-spin" size={56} />
+        </div>
+      )}
+
+      {/* Header */}
+      <CardHeader>
+        <Header
+          Icon={ContactRound}
+          title="Detail"
+          description="Detail of your account."
+        />
+      </CardHeader>
+
+      {/* Content */}
+      <CardContent className="grid gap-4">
+        <Separator className="mb-6" />
+        {/* Name */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* First name */}
+          <FormField
+            control={control}
+            name="first_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel required>First name</FormLabel>
+                <FormControl>
+                  <Input
+                    type="text"
+                    placeholder="Input first name here"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Last name */}
+          <FormField
+            control={control}
+            name="last_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel required={false}>Last name</FormLabel>
+                <FormControl>
+                  <Input
+                    type="text"
+                    placeholder="Input last name here"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        {/* Number */}
+        <FormField
+          control={control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem className="flex flex-col items-start z-[0]">
+              <FormLabel className="text-left" required={false}>
+                Phone Number
+              </FormLabel>
+              <FormControl className="w-full">
+                <PhoneInput
+                  placeholder="Enter a phone number"
+                  value={field.value as any}
+                  onChange={field.onChange}
+                  // {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {/* Birth Date */}
+        <FormField
+          control={control}
+          name="birth_date"
+          render={({ field }) => (
+            <FormItem className="flex flex-col items-start w-full">
+              <FormLabel className="text-left" required={false}>
+                Birth Date
+              </FormLabel>
+              <FormControl>
+                <DatePickerV2 {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {/* Address Detail */}
+        <FormField
+          control={control}
+          name="address"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Address</FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  placeholder="Input address detail here"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {/* Address */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* City */}
+          <FormField
+            control={control}
+            name="city"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input type="text" placeholder="City" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Province */}
+          <FormField
+            control={control}
+            name="province"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input type="text" placeholder="Province" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          {/* Country */}
+          <FormField
+            control={control}
+            name="country"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input type="text" placeholder="Country" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* ZIP / Postal Code */}
+          <FormField
+            control={control}
+            name="zip"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input
+                    type="text"
+                    placeholder="ZIP / Postal Code"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        {/* Gender */}
+        <FormField
+          control={control}
+          name="gender"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <div className="flex flex-col items-start gap-2">
+                  <FormLabel className="text-left">Gender</FormLabel>
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => field.onChange("FEMALE")}
+                      type="button"
+                      className={cn(
+                        "text-sm text-foreground/30 uppercase font-semibold tracking-widest min-h-32 aspect-square py-5 px-7 rounded-2xl border-[3px] flex flex-col items-center justify-between gap-2 transition-all ease-in duration-200 hover:-translate-y-1",
+                        field.value === "FEMALE"
+                          ? "border-pink-400 shadow-lg"
+                          : "hover:border-pink-400 hover:shadow-lg"
+                      )}
+                    >
+                      <svg
+                        stroke="#f472b6"
+                        fill="#f472b6"
+                        strokeWidth="0"
+                        viewBox="0 0 16 16"
+                        height="56px"
+                        width="56px"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M8 1a4 4 0 1 0 0 8 4 4 0 0 0 0-8M3 5a5 5 0 1 1 5.5 4.975V12h2a.5.5 0 0 1 0 1h-2v2.5a.5.5 0 0 1-1 0V13h-2a.5.5 0 0 1 0-1h2V9.975A5 5 0 0 1 3 5"
+                        ></path>
+                      </svg>
+                      Female
+                    </button>
+                    <button
+                      onClick={() => field.onChange("MALE")}
+                      type="button"
+                      className={cn(
+                        "text-sm text-foreground/30 uppercase font-semibold tracking-widest min-h-32 aspect-square py-5 px-7 rounded-2xl border-[3px] flex flex-col items-center justify-between gap-2 transition-all ease-in duration-200 hover:-translate-y-1",
+                        field.value === "MALE"
+                          ? "border-blue-400 shadow-lg"
+                          : "hover:border-blue-400 hover:shadow-lg"
+                      )}
+                    >
+                      <svg
+                        stroke="#60a5fa"
+                        fill="#60a5fa"
+                        strokeWidth="0"
+                        viewBox="0 0 16 16"
+                        height="56px"
+                        width="56px"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M9.5 2a.5.5 0 0 1 0-1h5a.5.5 0 0 1 .5.5v5a.5.5 0 0 1-1 0V2.707L9.871 6.836a5 5 0 1 1-.707-.707L13.293 2zM6 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8"
+                        ></path>
+                      </svg>
+                      Male
+                    </button>
+                  </div>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />{" "}
+        <Separator className="mt-6" />
+      </CardContent>
+      <CardFooter className="px-6 py-4 flex items-center justify-end gap-3">
+        {loading != undefined ? (
+          <Button loading={loading} disabled={loading} size={"lg"}>
+            <Save className="h-5 w-5" strokeWidth={1.2} />
+            Save
+          </Button>
+        ) : (
+          <>
+            <Button onClick={handlePrevStep} size={"lg"}>
+              <ArrowLeftIcon className="h-4 w-4 mt-[0.1rem]" />
+              Back
+            </Button>
+            <Button onClick={handleNextStep} size={"lg"}>
+              Next
+              <ArrowRightIcon className="h-4 w-4 mt-[0.1rem]" />
+            </Button>
+          </>
+        )}
+      </CardFooter>
+    </Card>
+  );
+};
+
+export default DetailForm;

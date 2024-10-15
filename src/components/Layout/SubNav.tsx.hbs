@@ -1,0 +1,52 @@
+import { cn } from "@/lib/utils";
+import { useMediaQuery } from "@custom-react-hooks/use-media-query";
+import { NavigationMenuLink } from "@radix-ui/react-navigation-menu";
+import { IconNode } from "lucide-react";
+import Link from "next/link";
+import React from "react";
+
+type SubNavProps = {
+  href: string;
+  active: boolean;
+  Icon?: any;
+  title?: string;
+};
+
+const SubNav: React.FC<SubNavProps> = ({ href, active, Icon, title }) => {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+
+  if (isDesktop) {
+    return (
+      <NavigationMenuLink
+        href={href}
+        className={cn(
+          "w-full h-full flex flex-col items-center justify-center py-3 px-3 font-medium gap-1 text-sm transition-all text-center leading-4 duration-300 ease-out rounded-xl hover:bg-primary/[0.1] ",
+          active && "bg-primary/[0.1]"
+        )}
+      >
+        <Icon className="h-9 w-9 text-primary" strokeWidth={1.2} />
+        <h1 className="w-full px-3 text-foreground">
+          <span className="drop-shadow-md">{title}</span>
+        </h1>
+      </NavigationMenuLink>
+    );
+  } else {
+    return (
+      <Link
+        href={href}
+        className={cn(
+          "flex items-center justify-start px-2 py-2 transition-all duration-300 ease-out hover:bg-gradient-to-br from-blue/[0.15] to-blue/[0.05] rounded-xl ",
+          active &&
+            "bg-gradient-to-br from-blue/[0.15] to-blue/[0.05]"
+        )}
+      >
+        <Icon className="h-6 w-6 text-primary" strokeWidth={1.2} />
+        <h1 className="w-full px-3 text-foreground font-medium">
+          <span className="drop-shadow-md">{title}</span>
+        </h1>
+      </Link>
+    );
+  }
+};
+
+export default SubNav;

@@ -1,0 +1,37 @@
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import React from "react";
+
+type Props = { 
+  setSearchQuery: React.Dispatch<
+    React.SetStateAction<{ searchQuery: string; searchShadow: string }>
+  >;
+  searchShadow: string;
+  debouncedHandleSearch: any;
+  placeholder?: string;
+};
+
+const CariCepatFilter: React.FC<Props> = ({ 
+  setSearchQuery,
+  searchShadow,
+  debouncedHandleSearch,
+  placeholder = "Search...",
+}) => {
+  return (
+    <Input 
+      onChange={(e) => {
+        setSearchQuery((prev) => ({
+          ...prev,
+          searchShadow: e.target.value,
+        }));
+        debouncedHandleSearch(e.target.value);
+      }  }
+      suffix={<Search className="h-5 w-5" />}
+      value={searchShadow} 
+      className="w-fit bg-white font-medium"
+      placeholder={placeholder}
+    />
+  );
+};
+
+export default CariCepatFilter;

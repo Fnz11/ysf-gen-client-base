@@ -1,0 +1,47 @@
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+
+const usersStore = (set: any) => ({
+  globalUsersData: [] as UserProps[],
+  refetch: null as any,
+  selectedIdInfo: "",
+  isSelectedRow: false,
+  handleSelectInfo: () => ({} as { handleSelectInfo: () => void }),
+  openInfo: false,
+  setGlobalUsersData: (users: UserProps[]) =>
+    set((state: { globalDdcData: UserProps[] }) => ({
+      ...state,
+      globalUsersData: users,
+    })),
+  setRefetch: (refetch: any) =>
+    set((state: { refetch: any }) => ({
+      ...state,
+      refetch,
+    })),
+  setSelectedIdInfo: (id: string) =>
+    set((state: { selectedIdInfo: string }) => ({
+      ...state,
+      selectedIdInfo: id,
+    })),
+  setOpenInfo: (open: boolean) =>
+    set((state: { openInfo: boolean }) => ({
+      ...state,
+      openInfo: open,
+    })),
+  setHandleSelectInfo: (handleSelectInfo: () => void) =>
+    set((state: { handleSelectInfo: () => void }) => ({
+      ...state,
+      handleSelectInfo,
+    })),
+  setIsSelectedRowInfo: (isSelectedRow: boolean) =>
+    set((state: { isSelectedRow: boolean }) => ({
+      ...state,
+      isSelectedRow,
+    })),
+});
+
+export const useUsersStore = create(
+  persist(usersStore, {
+    name: "users-store",
+  })
+);

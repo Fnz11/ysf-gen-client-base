@@ -1,0 +1,247 @@
+"use client";
+import { Card } from "@/components/ui/card";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  ContactRound,
+  ImageIcon,
+  ReceiptText,
+  SquareChartGantt,
+  UserPen,
+} from "lucide-react";
+import React, { Suspense, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { Form } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import Header from "@/components/ui/title";
+import {
+  createUser,
+  createUserSchema,
+  CreateUserSchemaProps,
+  updateUser,
+  updateUserSchema,
+  UpdateUserSchemaProps,
+} from "@/utils/users-api";
+import MutateButton from "@/components/Public/Mutate/MutateButton";
+import Steps from "@/components/ui/steps";
+import GeneralForm from "./GeneralForm";
+import DetailForm from "./DetailForm";
+import ImageForm from "./ImageForm";
+import SummaryUser from "./SummaryUser";
+
+type MutateClientProps = {
+  data: any;
+};
+
+const STEPS = [
+  {
+    icon: ReceiptText,
+    title: "General",
+    description: "Used to identify user in the marketplace.",
+  },
+  {
+    icon: ContactRound,
+    title: "Detail",
+    description: "Detail of user account",
+  },
+  {
+    icon: ImageIcon,
+    title: "Image",
+    description: "Image of user account",
+  },
+  {
+    icon: SquareChartGantt,
+    title: "Summary",
+    description: "Review of user account",
+  },
+];
+
+const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
+  const [step, setStep] = useState(1);
+  // 1. Define your form.
+  const form = useForm<
+    typeof initData extends undefined
+      ? CreateUserSchemaProps
+      : UpdateUserSchemaProps
+  >({
+    resolver: zodResolver(initData ? updateUserSchema : createUserSchema),
+  });
+  console.log(form.getValues());
+
+  useEffect(() => {
+    if (initData) {
+      form.reset({
+        username: initData?.username,
+        email: initData?.email,
+        password: initData?.password,
+        role: initData?.role,
+        first_name: initData?.first_name,
+        last_name: initData?.last_name,
+        phone: initData?.phone,
+        address: initData?.address,
+        image: initData?.image?.url,
+        banner: initData?.banner?.url,
+        birth_date: initData?.birth_date,
+        city: initData?.city,
+        country: initData?.country,
+        gender: initData?.gender,
+        province: initData?.province,
+        zip: initData?.zip,
+      });
+    }
+  }, [initData]);
+
+  console.log(form.getValues());
+
+  const { mutate: mutateCreateUsers, isPending } = useMutation({
+    mutationKey: ["mutateUsers"],
+    mutationFn: (
+      data: typeof initData extends undefined
+        ? CreateUserSchemaProps
+        : UpdateUserSchemaProps
+    ) => {
+      if (initData) {
+        return updateUser(initData.user_id, data as any);
+      } else {
+        return createUser(data as CreateUserSchemaProps);
+      }
+    },
+    onSuccess: (res) => {
+      toast.success(
+        res?.data?.message ||
+          `Successfully ${initData ? "updated" : "created"} user data`
+      );
+      if (window) {
+        window.location.pathname = "/users";
+      }
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Something went wrong");
+      console.error(err);
+    },
+  });
+
+  // 2. Define a submit handler.
+  function onSubmit(
+    values: typeof initData extends undefined
+      ? CreateUserSchemaProps
+      : UpdateUserSchemaProps
+  ) {
+    // Do something with the form values.
+    // ✅ This will be type-safe and validated.
+    mutateCreateUsers(values);
+    console.log(values);
+  }
+
+  const handleNextStep = () => {
+    const data = form.getValues();
+    if (step == 1) {
+      if (data?.username && data?.email && data?.role) {
+        if (!data?.password && !initData) {
+          toast.error("Please fill in all required fields");
+          return;
+        }
+        setStep(step + 1);
+      } else {
+        toast.error("Please fill in all required fields");
+      }
+    } else if (step == 2) {
+      if (data?.first_name) {
+        setStep(step + 1);
+      } else {
+        toast.error("Please fill in all required fields");
+      }
+    } else {
+      setStep((prev) => prev + 1);
+    }
+  };
+
+  const handlePrevStep = () => {
+    setStep((prev) => prev - 1);
+  };
+
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+
+          const validationResult = (
+            initData ? updateUserSchema : createUserSchema
+          ).safeParse(form.getValues());
+
+          if (!validationResult.success) {
+            console.log(form.getValues());
+            toast.error(
+              validationResult.error.errors[0].path[0] +
+                ": " +
+                validationResult.error.errors[0].message || "Invalid input"
+            );
+            return;
+          }
+          onSubmit(form.getValues());
+        } }
+        className="flex flex-col gap-6 items-center justify-center size-full"
+      >
+        {/* Top */}
+        <Card className="w-full flex flex-col justify-between p-6 gap-4">
+          <div className="flex justify-between">
+            <Header
+              title={initData ? "Edit User" : "Create User"}
+              description={
+                initData
+                  ? "Edit the details of an existing user."
+                  : "Add a new user to the system."
+              }
+              Icon={UserPen}
+            />
+
+            <MutateButton loading={isPending} />
+          </div>
+
+          {/* Steps */}
+          <div className="flex items-center w-full">
+            <Steps currentStep={step} setCurrentStep={setStep} steps={STEPS} />
+          </div>
+        </Card>
+
+        <div className="w-full flex flex-col items-center justify-center">
+          {/* 1 */}
+          {step == 1 ? (
+            <GeneralForm
+              form={form}
+              initData={initData}
+              handleNextStep={handleNextStep}
+              showPassword={!initData}
+              showEmail={!initData}
+            />
+          ) : step == 2 ? (
+            <DetailForm
+              form={form}
+              initData={initData}
+              handleNextStep={handleNextStep}
+              handlePrevStep={handlePrevStep}
+            />
+          ) : step == 3 ? (
+            <ImageForm
+              form={form}
+              initData={initData}
+              handleNextStep={handleNextStep}
+              handlePrevStep={handlePrevStep}
+            />
+          ) : step == 4 ? (
+            <SummaryUser
+              form={form}
+              initData={initData}
+              handlePrevStep={handlePrevStep}
+              isLoading={isPending}
+            />
+          ) : null}
+        </div>
+      </form>
+    </Form>
+  );
+};
+
+export default MutateClient;

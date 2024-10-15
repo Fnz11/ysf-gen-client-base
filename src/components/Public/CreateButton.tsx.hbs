@@ -1,0 +1,202 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { Suspense, useEffect, useState } from "react";
+import { Button } from "../ui/button";
+import { Plus, PlusCircle, Send, Upload } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import Link from "next/link";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
+import FileUpload from "../ui/file-upload";
+import ResultTable from "./ResultTable";
+import DownloadButton from "./DownloadButton";
+import { AnimatePresence, motion } from "framer-motion";
+
+type CreateBatchProps = {
+  onCreateBatch: any;
+  handleDownload?: any;
+  onCreate: any;
+  name: string;
+};
+
+type Props = CreateBatchProps & {
+  href: string;
+};
+
+const CreateButton: React.FC<Props> = ({
+  href,
+  onCreateBatch,
+  onCreate,
+  handleDownload,
+  name,
+}) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant={"default"} type="button">
+            <PlusCircle className="h-5 w-5" strokeWidth={1.5} />
+            Create
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align={"end"}
+          className="max-md:mr-[7rem] max-md:mt-[-2.7rem]"
+        >
+          <Link href={href}>
+            <DropdownMenuItem className="cursor-pointer">
+              <PlusCircle className="h-4 w-4" strokeWidth={1.5} />
+              Create
+            </DropdownMenuItem>
+          </Link>
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => setOpen(true)}
+          >
+            <Upload className="h-4 w-4" strokeWidth={1.5} />
+            Insert
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Suspense fallback={""} key={open ? "open" : "closed"}>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <CreateBatch
+            name={name}
+            handleDownload={handleDownload}
+            onCreate={onCreate}
+            onCreateBatch={onCreateBatch}
+          />
+        </Dialog>
+      </Suspense>
+    </>
+  );
+};
+
+const CreateBatch: React.FC<CreateBatchProps> = ({
+  onCreateBatch,
+  onCreate,
+  handleDownload,
+  name,
+}) => {
+  const [file, setFile] = useState<File | null>(null);
+  const [isFirstOpen, setIsFirstOpen] = useState(true);
+  const [resultData, setResultData] = useState<ResultDataProps[]>([]);
+
+  const handleFileChange = (file: File | null) => {
+    setFile(file);
+  };
+
+  useEffect(() => {
+    if (onCreateBatch?.isSuccess && !onCreateBatch?.isError) {
+      setResultData([...onCreateBatch?.data?.data?.data]);
+    }
+  }, [onCreateBatch?.isSuccess, onCreateBatch?.isError]);
+
+  const handleUpload = async () => {
+    if (!file) {
+      return;
+    }
+    setIsFirstOpen(false);
+    onCreateBatch.mutate(file);
+  };
+
+  useEffect(() => {
+    if (!isFirstOpen) {
+      setIsFirstOpen(true);
+      setResultData([]);
+    }
+  }, []);
+
+  return (
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle className="flex items-center justify-center font-medium w-fit gap-2">
+          <Upload
+            strokeWidth={1.5}
+            className="md:w-7 md:h-7 w-6 h-6 text-primary"
+          />
+          Insert
+        </DialogTitle>
+        <DialogDescription>
+          Upload file in the provided template format
+        </DialogDescription>
+      </DialogHeader>
+      <div className="h-[12rem] w-full relative">
+        <AnimatePresence>
+          {!isFirstOpen && resultData.length > 0 && (
+            <motion.div
+              initial={  { opacity: 0, scale: 0.8 }  }
+              animate={  { opacity: 1, scale: 1 }  }
+              exit={  { opacity: 0, scale: 0.8 }  }
+              transition={  { ease: "backInOut", duration: 0.3 }  }
+              className={`absolute top-0 left-0 w-full h-full flex flex-col border rounded-xl overflow-y-auto`}
+            >
+              <ResultTable
+                action={onCreate?.mutate}
+                actionText="Retry"
+                item={resultData}
+                loading={onCreate?.isPending}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {!(!isFirstOpen && resultData.length > 0) && (
+            <motion.div
+              initial={  { opacity: 0, scale: 0.8 }  }
+              animate={  { opacity: 1, scale: 1 }  }
+              exit={  { opacity: 0, scale: 0.8 }  }
+              transition={  { ease: "backInOut", duration: 0.3 }  }
+              className={`absolute top-0 left-0 size-full`}
+            >
+              <FileUpload onUploadComplete={handleFileChange} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+      <DialogFooter className="max-md:flex-col-reverse">
+        {!(!isFirstOpen && resultData.length > 0) ? (
+          <>
+            <DownloadButton
+              className="w-full md:w-[50%] h-12"
+              api={handleDownload}
+              name={name + "-template"}
+              template
+            />
+            <Button
+              variant={"default"}
+              onClick={handleUpload}
+              disabled={!file}
+              type="button"
+              className="md:w-[50%]"
+            >
+              <Send className="w-4 h-4" strokeWidth={1.5} />
+              Submit
+            </Button>
+          </>
+        ) : (
+          <DialogClose className="max-md:w-full">
+            <Button className="max-md:w-full" variant={"outline"}>
+              Keluar
+            </Button>
+          </DialogClose>
+        )}
+      </DialogFooter>
+    </DialogContent>
+  );
+};
+
+export default CreateButton;

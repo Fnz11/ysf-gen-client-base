@@ -1,0 +1,163 @@
+import { useEffect, useState } from "react";
+import { format, addMonths } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { Button } from "./button";
+import { CalendarIcon } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./select";
+import { Calendar } from "./calendar";
+import SuffixClearInput from "../Public/SuffixClearInput";
+import { Input } from "./input";
+
+const DatePickerV2 = ({
+  value,
+  onChange,
+  isDeletable = false,
+  placeholder = "Pick a date",
+}: {
+  value: any;
+  onChange: (value: any) => void;
+  isDeletable?: boolean;
+  placeholder?: string;
+}) => {
+  const [isMounted, setIsMounted] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(
+    value ? new Date(value) : undefined
+  );
+  const [selectedMonth, setSelectedMonth] = useState(
+    value ? new Date(value).getMonth() : new Date().getMonth()
+  );
+  const [selectedYear, setSelectedYear] = useState(
+    value ? new Date(value).getFullYear() : new Date().getFullYear()
+  );
+
+  useEffect(() => {
+    if (value) {
+      const parsedDate = new Date(value);
+      if (!isNaN(parsedDate.getTime())) {
+        setSelectedDate(parsedDate);
+        setSelectedMonth(parsedDate.getMonth());
+        setSelectedYear(parsedDate.getFullYear());
+      }
+    }
+  }, [value]);
+
+  const handleDateChange = (date: any) => {
+    const newDate = new Date(selectedYear, selectedMonth, date.getDate());
+    setSelectedDate(newDate);
+    onChange(newDate);
+  };
+
+  const handleMonthChange = (month: any) => {
+    setSelectedMonth(month);
+    const newDate = new Date(selectedYear, month, selectedDate?.getDate() || 1);
+    setSelectedDate(newDate);
+    onChange(newDate);
+  };
+
+  const handleYearChange = (year: any) => {
+    setSelectedYear(year);
+    const newDate = new Date(year, selectedMonth, selectedDate?.getDate() || 1);
+    setSelectedDate(newDate);
+    onChange(newDate);
+  };
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted)
+    return <Input type="text" className="w-full" placeholder="Pilih Tanggal" />;
+
+  return (
+    <>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <div className="relative w-full">
+            <button
+              type="button"
+              className="justify-start text-left text-sm font-normal rounded-xl w-full h-auto py-3 px-4 relative base-input"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" strokeWidth={1.3} />
+              {selectedDate ? (
+                format(selectedDate, "PPP")
+              ) : (
+                <span className="text-foreground/50">{placeholder}</span>
+              )}
+            </button>
+            {isDeletable && (
+              <span className="absolute inset-y-0 right-0 flex items-center pr-3 z-[5]">
+                <SuffixClearInput
+                  condition={typeof value !== undefined}
+                  onClick={() => {
+                    onChange(undefined);
+                    setSelectedDate(undefined);
+                  }  }
+                />
+              </span>
+            )}
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="flex w-auto flex-col space-y-2 p-2">
+          <div className="grid grid-cols-2 gap-4">
+            {/* Select Month */}
+            <Select
+              value={selectedMonth.toString()}
+              onValueChange={(value) => handleMonthChange(parseInt(value))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Month" />
+              </SelectTrigger>
+              <SelectContent position="popper">
+                {Array.from({ length: 12 }).map((_, index) => (
+                  <SelectItem key={index} value={index.toString()}>
+                    {format(new Date(0, index), "MMMM")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {/* Select Year */}
+            <Select
+              value={selectedYear.toString()}
+              onValueChange={(value) => handleYearChange(parseInt(value))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Year" />
+              </SelectTrigger>
+              <SelectContent position="popper">
+                {Array.from({ length: 101 }).map((_, index) => {
+                  const year = new Date().getFullYear() - index;
+                  return (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+          {/* Calendar */}
+          <Calendar
+            mode="single"
+            captionLayout="dropdown"
+            initialFocus
+            disableNavigation
+            showHead={false}
+            selected={selectedDate}
+            onSelect={handleDateChange}
+            month={selectedMonth as unknown as Date}
+            //   year={selectedYear as unknown as Date}
+          />
+        </PopoverContent>
+      </Popover>
+    </>
+  );
+};
+
+export default DatePickerV2;

@@ -1,0 +1,21 @@
+import BukuTerbaru from "@/components/Dashboard/Home/BukuTerbaru/BukuTerbaru";
+import BukuTerlambatKembali from "@/components/Dashboard/Home/BukuTerlambatKembali/BukuTerlambatKembali";
+import JatuhTempo from "@/components/Dashboard/Home/JatuhTempo/JatuhTempo";
+import MemberTerbaru from "@/components/Dashboard/Home/MemberTerbaru/MemberTerbaru";
+import Middle from "@/components/Dashboard/Home/Middle/Middle";
+import { NextPage } from "next";
+import React from "react";
+
+const Dashboard: NextPage = () => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-10 gap-5 p-5 w-full h-full">
+      <BukuTerbaru />
+      <Middle />
+      <MemberTerbaru />
+      <BukuTerlambatKembali />
+      <JatuhTempo />
+    </div>
+  );
+};
+
+export default Dashboard;

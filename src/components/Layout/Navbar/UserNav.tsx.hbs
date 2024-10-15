@@ -1,0 +1,84 @@
+"use client";
+
+import Link from "next/link";
+import { LayoutGrid, LogOut, User } from "lucide-react";
+
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import handleLogout from "@/utils/handleLogout";
+import { cn } from "@/lib/utils";
+
+export function UserNav({ userData }: { userData: any }) {
+  console.log(userData);
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Avatar
+          className={cn(
+            "!h-11 !w-11 !rounded-full cursor-pointer",
+            buttonVariants({ size: "icon", variant: "outline" })
+          )}
+        >
+          <AvatarImage
+            src={userData?.userDetail?.image?.url || "#"}
+            alt="Avatar"
+          />
+          <AvatarFallback className="bg-transparent">JD</AvatarFallback>
+        </Avatar>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent
+        className="w-56 p-4 rounded-2xl"
+        align="end"
+        forceMount
+      >
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">
+              {userData?.username || "-"}
+            </p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {userData?.email || "-"}
+            </p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator /> 
+          <DropdownMenuItem className="hover:cursor-pointer" asChild>
+            <Link href="/dashboard" className="flex items-center">
+              <LayoutGrid className="w-4 h-4 mr-3 text-muted-foreground" />
+              Dashboard
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem className="hover:cursor-pointer" asChild>
+            <Link href="/account" className="flex items-center">
+              <User className="w-4 h-4 mr-3 text-muted-foreground" />
+              Account
+            </Link>
+          </DropdownMenuItem> 
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() => handleLogout()}
+        >
+          <LogOut className="w-4 h-4 mr-3 text-muted-foreground" />
+          Sign out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}

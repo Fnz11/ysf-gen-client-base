@@ -1,0 +1,211 @@
+"use client";
+import React, { Suspense, useEffect, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
+import { z } from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { NextPage } from "next";
+import { useRouter, useSearchParams } from "next/navigation";
+import AuthClient from "@/components/Auth/AuthClient";
+import Link from "next/link";
+import { PasswordInput } from "@/components/ui/password-input";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import {
+  forgotPassword,
+  verifyCode,
+  verifyEmailSchema,
+  VerifyEmailSchemaProps,
+} from "@/utils/auth";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { CardDescription } from "@/components/ui/card";
+import setSession from "@/utils/setSession";
+
+const VerifyCode: NextPage = () => {
+  return (
+    <Suspense fallback={"Loading..."}>
+      <VerifyCodeClient />
+    </Suspense>
+  );
+};
+
+const VerifyCodeClient = () => {
+  // =============== HOOKS ================
+  const emailParam = useSearchParams().get("email");
+  const router = useRouter();
+  const form = useForm<VerifyEmailSchemaProps>({
+    resolver: zodResolver(verifyEmailSchema),
+  });
+
+  // Mutate Verify
+  const { isPending, mutate: mutateVerify } = useMutation({
+    mutationKey: ["verify-code"],
+    mutationFn: (data: VerifyEmailSchemaProps) => verifyCode(data),
+    onSuccess: (res: any) => {
+      setSession(res.data.data.user, res.data.data.token);
+      router.push("/");
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Something went wrong");
+      console.log(err);
+    },
+  });
+
+  // Mutate Resend Code
+  const { mutate: mutateResendCode } = useMutation({
+    mutationKey: ["resend-code"],
+    mutationFn: async (data: { email: string }) => {
+      try {
+        await toast.promise(forgotPassword({ email: data?.email }), {
+          loading: "Sending code...",
+          success: "Code sent!",
+          error: "Failed to send code",
+        });
+        return true;
+      } catch (error) {
+        throw new Error("Failed to send code");
+      }
+    },
+    onSuccess: (res: any) => {
+      console.log(res);
+      startCountdown();
+    },
+  });
+  // =============== STATES ================
+
+  const [countdown, setCountdown] = useState(60);
+  const { handleSubmit, control } = form;
+
+  // =============== HANDLE ================
+
+  // =============== HANDLE ================
+  const onSubmit = handleSubmit(async (data) => {
+    console.log("Submitted!: ", data);
+    await mutateVerify(data);
+  });
+
+  const startCountdown = () => {
+    setCountdown(60);
+  };
+
+  useEffect(() => {
+    if (!emailParam) {
+      router.push("/signup");
+    } else {
+      startCountdown();
+    }
+  }, [emailParam, router]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (countdown > 0) {
+      interval = setInterval(() => {
+        setCountdown((prevCountdown) => prevCountdown - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [countdown]);
+
+  const handleResendCode = () => {
+    mutateResendCode(form.getValues());
+  };
+
+  // =============== RENDER ================
+  return (
+    <>
+      {/* Content */}
+      <AuthClient
+        cardTitle="Verify Your Code"
+        cardDescription="Please enter the verification code that was sent to your email address. If you didn't receive the code, check your spam folder or request a new one."
+      >
+        <CardDescription>
+          <button
+            disabled={countdown > 0}
+            onClick={() => handleResendCode()}
+            className={`${
+              countdown > 0
+                ? "cursor-not-allowed opacity-[0.8]"
+                : "text-primary hover:underline"
+            }`}
+          >
+            Resend code
+          </button>{" "}
+          {countdown > 0 && `in ${countdown}s`}
+        </CardDescription>
+        <div className="grid gap-6 w-full">
+          <Form {...form}>
+            <form onSubmit={onSubmit} className="grid gap-6">
+              {/* Code */}
+              <FormField
+                control={control}
+                name="code"
+                render={({ field }) => (
+                  <FormItem className="w-full py-[1rem] flex flex-col items-center justify-center">
+                    <FormLabel>Verify Code</FormLabel>
+                    <FormControl>
+                      <InputOTP maxLength={6} {...field}>
+                        <InputOTPGroup>
+                          <InputOTPSlot className="w-14 h-14" index={0} />
+                          <InputOTPSlot className="w-14 h-14" index={1} />
+                          <InputOTPSlot className="w-14 h-14" index={2} />
+                          <InputOTPSlot className="w-14 h-14" index={3} />
+                          <InputOTPSlot className="w-14 h-14" index={4} />
+                          <InputOTPSlot className="w-14 h-14" index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Email */}
+              <input
+                type="text"
+                hidden
+                value={emailParam as string}
+                {...form.register("email")}
+              />
+
+              {/* Submit */}
+              <Button
+                disabled={isPending}
+                loading={isPending}
+                size={"lg"}
+                type="submit"
+                className="w-full"
+              >
+                Verify
+              </Button>
+            </form>
+          </Form>
+        </div>
+        <div className="mt-8 text-center text-muted-foreground">
+          Already have an account?{" "}
+          <Link
+            href="/signin"
+            className="hover:underline hover:!scale-[1.1] transition-all "
+          >
+            Sign In
+          </Link>
+        </div>
+      </AuthClient>
+    </>
+  );
+};
+
+export default VerifyCode;

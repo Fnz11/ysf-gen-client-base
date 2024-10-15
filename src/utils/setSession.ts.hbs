@@ -1,0 +1,11 @@
+"use client";
+import Cookies from "js-cookie";
+
+const setSession = (user: any, token: string) => {
+  localStorage.setItem("user", JSON.stringify(user));
+  localStorage.setItem("session", token);
+  Cookies.set("user_id", user.user_id);
+  Cookies.set("session", token);
+};
+
+export default setSession;

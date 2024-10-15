@@ -1,0 +1,57 @@
+import { cn } from "@/lib/utils";
+import { HeaderContext } from "@tanstack/react-table";
+import {
+  ArrowDownWideNarrow,
+  ArrowUpDown,
+  ArrowUpNarrowWide,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import React from "react";
+
+type SortedHeadTableProps = {
+  info: HeaderContext<any, unknown>;
+  title?: string;
+  className?: string;
+  disabled?: boolean;
+};
+
+const SortedHeadTable: React.FC<SortedHeadTableProps> = ({
+  info,
+  title,
+  className,
+  disabled,
+}) => {
+  return (
+    <button
+      type="button"
+      onClick={info.column.getToggleSortingHandler()}
+      className={cn("header-table", className)}
+    >
+      {title ||
+        (typeof info?.column?.columnDef?.header == "string" &&
+          info?.column?.columnDef?.header)}{" "}
+      {!disabled && <SortedHeadIcon info={info} />}
+    </button>
+  );
+};
+
+type SortedHeadIconProps = {
+  info: HeaderContext<any, unknown>;
+};
+
+export const SortedHeadIcon: React.FC<SortedHeadIconProps> = ({ info }) => {
+  return (
+    <>
+      {info.column.getIsSorted() === "asc" ? (
+        <ChevronUp strokeWidth={1.3} className="h-[1rem]" />
+      ) : info.column.getIsSorted() === "desc" ? (
+        <ChevronDown strokeWidth={1.3} className="h-[1rem]" />
+      ) : (
+        <ArrowUpDown strokeWidth={1.3} className="h-[0.8rem]" />
+      )}
+    </>
+  );
+};
+
+export default SortedHeadTable;

@@ -1,0 +1,110 @@
+import {
+  Tag,
+  Users,
+  Settings,
+  Bookmark,
+  SquarePen,
+  LayoutGrid,
+  LucideIcon,
+  Package,
+  LineChart,
+  Home,
+  ShoppingCart,
+  SlidersHorizontal,
+  AlignCenter
+} from "lucide-react";
+
+type Submenu = {
+  href: string;
+  label: string;
+  active: boolean;
+};
+
+type Menu = {
+  href: string;
+  label: string;
+  active: boolean;
+  icon: LucideIcon;
+  submenu: Submenu[];
+};
+
+type Group = {
+  groupLabel: string;
+  menu: Menu[];
+};
+
+export function getMenuList(pathname: string): Group[] {
+  return [
+    {
+      groupLabel: "",
+      menu: [
+        {
+          href: "/",
+          label: "Dashboard",
+          active: pathname === "/",
+          icon: LayoutGrid,
+          submenu: [],
+        },
+      ],
+    },
+    {
+      groupLabel: "General",
+      menu: [
+        {
+          href: "/users",
+          label: "Users",
+          active: pathname.includes("/users"),
+          icon: Users,
+          submenu: [],
+        },
+        // Link Here (DON'T DELETE THIS COMMENT)
+      ],
+    },
+    {
+      groupLabel: "Other",
+      menu: [
+        {
+          href: "/settings",
+          label: "Settings",
+          active: pathname.includes("/settings"),
+          icon: Settings,
+          submenu: [],
+        },
+      ],
+    },
+  ];
+}
+
+export const LINK_ITEMS = [
+  {
+    name: "Dashboard",
+    href: "/",
+    icon: <Home className="h-4 w-4" />,
+  },
+  {
+    name: "Orders",
+    href: "/orders",
+    icon: <ShoppingCart className="h-4 w-4" />,
+  },
+  {
+    name: "Products",
+    href: "/products",
+    icon: <Package className="h-4 w-4" />,
+  },
+  {
+    name: "Users",
+    href: "/users",
+    icon: <Users className="h-4 w-4" />,
+  },
+  {
+    name: "Analytics",
+    href: "/analytics",
+    icon: <LineChart className="h-4 w-4" />,
+  },
+  {
+    name: "Settings",
+    href: "/settings",
+    icon: <SlidersHorizontal className="h-4 w-4" />,
+  },
+  // Link Mobile Here (DON'T DELETE THIS COMMENT)
+];

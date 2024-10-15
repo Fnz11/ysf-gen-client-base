@@ -1,0 +1,197 @@
+import axiosInstance from "@/lib/axios";
+import { z } from "zod";
+import { getUrlFilter } from "./url-filter";
+
+// ==================== VALIDATION ====================
+
+const ROLE = ["USER", "ADMIN", "SUPER_ADMIN"] as const;
+
+export const generalSchema = z.object({
+  user_id: z.string().optional(),
+  username: z
+    .string()
+    .min(3, { message: "Username must be minimum 3 character" }),
+  email: z.string().optional(),
+  role: z.enum(ROLE),
+});
+
+// Users Detail Schema Validator
+export const userDetailSchema = z.object({
+  first_name: z
+    .string()
+    .min(3, { message: "First name must be at least 3 characters long" }),
+  last_name: z
+    .string()
+    .min(3, { message: "Last name must be at least 3 characters long" })
+    .optional(),
+  image: z.string().optional(),
+  banner: z.string().optional(),
+  phone: z.string().optional(),
+  birth_date: z.union([z.date(), z.string()]).optional().nullable(),
+  gender: z.enum(["MALE", "FEMALE", "NOT_SPECIFIED"]).optional(),
+  user_id: z.string(),
+});
+
+// Address Schema Validator
+export const addressSchema = z.object({
+  address: z.string().optional(),
+  city: z.string().optional(),
+  province: z.string().optional(),
+  country: z.string().optional(),
+  zip: z.string().optional(),
+  user_id: z.string().optional(),
+});
+
+export const createUserSchema = z.object({
+  ...generalSchema.shape,
+  ...userDetailSchema.shape,
+  ...addressSchema.shape,
+  role: z.enum(ROLE),
+  password: z
+    .string()
+    .min(8, { message: "Password must be minimum 8 characters" }),
+});
+
+export const updateUserSchema = z.object({
+  ...generalSchema.shape,
+  ...userDetailSchema.shape,
+  ...addressSchema.shape,
+  address: createUserSchema.shape.address.optional(),
+  city: createUserSchema.shape.city.optional(),
+  province: createUserSchema.shape.province.optional(),
+  country: createUserSchema.shape.country.optional(),
+  zip: createUserSchema.shape.zip.optional(),
+  user_id: createUserSchema.shape.user_id.optional(),
+  password: z.string().optional(),
+});
+
+// ==================== TYPES ====================
+
+export type CreateUserSchemaProps = z.infer<typeof createUserSchema>;
+export type UpdateUserSchemaProps = z.infer<typeof updateUserSchema>;
+
+// ==================== API ====================
+
+// GET ALL
+export const getAllUsers = async ({
+  page,
+  limit,
+  user_id,
+  first_name,
+  last_name,
+  username,
+  email,
+  role,
+  phone,
+  birth_date,
+  gender,
+  email_verified,
+  provider_id,
+}: UsersSearchParamsProps, token?: string) => {
+  const url = getUrlFilter({
+    base: "/users",
+    limit,
+    user_id,
+    first_name,
+    last_name,
+    username,
+    email,
+    role,
+    phone,
+    birth_date,
+    gender,
+    email_verified,
+    provider_id,
+  });
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  try {
+    return await axiosInstance.get(url, { headers });
+  } catch (error) {
+    throw error;
+  }
+};
+
+// GET BY ID
+export const getUserById = async (id: string, token?: string) => {
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  try {
+    return await axiosInstance.get(`/users/${id}`, { headers });
+  } catch (error) {
+    throw error;
+  }
+};
+
+// CREATE BATCH
+export const createBatchUsers = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    return await axiosInstance.post("/users/batch", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+// CREATE
+export const createUser = async (data: CreateUserSchemaProps) => {
+  console.log(data);
+  try {
+    return await axiosInstance.post("/users", data);
+  } catch (error) {
+    throw error;
+  }
+};
+
+// UPDATE
+export const updateUser = async (id: string, data: UpdateUserSchemaProps) => {
+  console.log(data);
+  try {
+    return await axiosInstance.patch("/users/" + id, data);
+  } catch (error) {
+    throw error;
+  }
+};
+
+// DELETE
+export const deleteUser = async (id: string) => {
+  try {
+    return await axiosInstance.delete(`/users/${id}`);
+  } catch (error) {
+    throw error;
+  }
+};
+
+// DELETE BATCH
+export const deleteUsersBatch = async (ids: string[]) => {
+  try {
+    return await axiosInstance.post(`/users/delete/batch`, {
+      ids: [...ids],
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+// DOWNLOAD
+export const downloadUsers = async (template?: boolean) => {
+  try {
+    const res = await axiosInstance.get(
+      `/users/download${!!template ? "/template" : "/default"}`,
+      {
+        headers: {
+          "Content-Type":
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        },
+        responseType: "blob",
+      }
+    );
+    return res;
+  } catch (error) {
+    throw error;
+  }
+};

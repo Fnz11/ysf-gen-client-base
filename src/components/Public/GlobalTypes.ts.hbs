@@ -1,0 +1,50 @@
+type UserProps = {
+  user_id: number;
+  username: string;
+  email: string;
+  password: string;
+  role: string;
+  phone: string;
+  birth_date: string;
+  gender: string;
+  email_verified: string;
+  provider_id: string;
+  first_name: string;
+  last_name: string;
+  image: {
+    url: string;
+  };
+  address: string;
+  country: string;
+  province: string;
+  city: string;
+  zip: string;
+};
+
+type ResultDataProps = {
+  id: string;
+  success: boolean;
+  message: string;
+}; 
+
+// Props Here (DON'T DELETE THIS COMMENT)
+
+// =================== SEARCH PARAMS ==================== 
+
+type UsersSearchParamsProps = {
+  page?: string;
+  limit?: string;
+  user_id?: string;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  email?: string;
+  role?: string;
+  phone?: string;
+  birth_date?: string;
+  gender?: string;
+  email_verified?: string;
+  provider_id?: string;
+};
+
+// Search Params Props Here (DON'T DELETE THIS COMMENT)

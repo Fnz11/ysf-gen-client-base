@@ -1,0 +1,22 @@
+// Custom sorting function
+export const manualSort = (
+  a: any,
+  b: any,
+  type: "string" | "number" | "date"
+) => {
+  // Handle undefined or null cases
+  if (a === undefined || a === null) return 1;
+  if (b === undefined || b === null) return -1;
+
+  // Return comparison for strings, numbers, or dates
+  console.log(a, b, type);
+  if (type === "string") {
+    return a.localeCompare(b); // Sort alphabetically for strings
+  } else if (type === "number") {
+    return a - b; // Sort numerically for numbers
+  } else if (type === "date") {
+    return a.getTime() - b.getTime(); // Sort by date
+  }
+
+  return 0; // Default case
+};

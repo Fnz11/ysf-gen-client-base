@@ -1,0 +1,212 @@
+"use client";
+import React from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
+import { z } from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { NextPage } from "next";
+import { useRouter } from "next/navigation";
+import AuthClient from "@/components/Auth/AuthClient";
+import Link from "next/link";
+import { PasswordInput } from "@/components/ui/password-input";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import PhoneInput from "@/components/ui/phone-input";
+import { signUp, registerSchema as signupSchema } from "@/utils/auth";
+
+type SignupSchemaProps = z.infer<typeof signupSchema>;
+
+const Signup: NextPage = () => {
+  // =============== HOOKS ================
+  const router = useRouter();
+  const form = useForm<SignupSchemaProps>({
+    resolver: zodResolver(signupSchema),
+  });
+  const { isPending, mutate: mutateSignUp } = useMutation({
+    mutationKey: ["signup"],
+    mutationFn: (data: SignupSchemaProps) => signUp(data),
+    onSuccess: (res: any) => {
+      router.push("/verify-code?email=" + form.getValues("email"));
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Something went wrong");
+      console.log(err);
+    },
+  });
+
+  // =============== STATES ================
+
+  const { handleSubmit, control } = form;
+
+  // =============== HANDLE ================
+
+  const onSubmit = handleSubmit(async (data) => {
+    console.log("Submitted!: ", data);
+    await mutateSignUp(data);
+  });
+
+  // =============== RENDER ================
+
+  return (
+    <AuthClient
+      className="pt-14"
+      cardClassName="md:w-[43vw]"
+      title="Join Today!"
+      description="We're thrilled to welcome you! By signing up, you'll gain access to exclusive features, personalized content, and the latest updates. Let's get started on this exciting journey together!"
+      image="/Abs1.jpg"
+      cardTitle="Sign Up Now"
+    >
+      <Form {...form}>
+        <form onSubmit={onSubmit} className="grid gap-4 w-full">
+          {/* Name */}
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* First name */}
+            <FormField
+              control={control}
+              name="first_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>First Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder="Input first name here"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Last name */}
+            <FormField
+              control={control}
+              name="last_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Last Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder="Input last name here"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* Email */}
+            <FormField
+              control={control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="Input email here"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Password */}
+            <FormField
+              control={control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <PasswordInput
+                      placeholder="Input password here"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* Number */}
+            <FormField
+              control={control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Number</FormLabel>
+                  <FormControl>
+                    <PhoneInput type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Username */}
+            <FormField
+              control={control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder="Input username here"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Submit */}
+          <Button
+            disabled={isPending}
+            loading={isPending}
+            size={"lg"}
+            type="submit"
+            className="w-full mt-5"
+          >
+            Signup
+          </Button>
+        </form>
+      </Form>
+      <div className="mt-8 text-center text-muted-foreground">
+        Already have an account?{" "}
+        <Link
+          href="/signin"
+          className="hover:underline hover:!scale-[1.1] transition-all "
+        >
+          Sign In
+        </Link>
+      </div>
+    </AuthClient>
+  );
+};
+
+export default Signup;

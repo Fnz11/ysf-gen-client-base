@@ -1,0 +1,20 @@
+import { TableCell, TableRow } from "@/components/ui/table";
+import React from "react";
+
+type NoResultTableProps = {
+  colSpan: number;
+};
+
+const NoResultTable: React.FC<NoResultTableProps> = ({ colSpan }) => {
+  return (
+    <>
+      <TableRow>
+        <TableCell colSpan={colSpan} className="text-center">
+          No results.
+        </TableCell>
+      </TableRow>
+    </>
+  );
+};
+
+export default NoResultTable;

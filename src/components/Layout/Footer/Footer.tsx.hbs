@@ -1,0 +1,20 @@
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+
+export function Footer() {
+  return (
+    <div className="z-20 w-full h-14 !bg-card shadow backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="mx-4 md:mx-8 flex h-14 items-center">
+        <p className="text-xs md:text-sm leading-loose text-muted-foreground text-left h-fit">
+          © 2024
+          <Link href="https://ysfik.my.id" target="_blank">
+            <Button variant={"linkHover2"} className="mx-[-0.5rem]">
+              {{ projectName }}
+            </Button>
+          </Link>
+          All rights reserved.
+        </p>
+      </div>
+    </div>
+  );
+}

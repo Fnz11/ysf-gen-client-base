@@ -1,0 +1,5 @@
+import axiosInstance from "@/lib/axios";
+
+export default async function getData() {
+  return await axiosInstance.get("/data");
+}

@@ -1,0 +1,227 @@
+import React from "react";
+import { useMediaQuery } from "@custom-react-hooks/use-media-query";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { Check, User, X } from "lucide-react";
+import { useUsersStore } from "@/stores/UsersStore";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import TextWithIcon from "@/components/Public/Table/CellWithIcon";
+import { Badge } from "@/components/ui/badge";
+
+const USER = {
+  title: (
+    <span className="flex items-center justify-center font-medium w-fit gap-2">
+      <User className="md:w-7 md:h-7 w-6 h-6 text-primary" /> User Info
+    </span>
+  ),
+};
+
+const UserInfo: React.FC = () => {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const {
+    globalUsersData,
+    openInfo,
+    setOpenInfo,
+    selectedIdInfo,
+    handleSelectInfo,
+    setSelectedIdInfo,
+    isSelectedRow,
+  } = useUsersStore();
+
+  if (isDesktop) {
+    return (
+      <Dialog open={openInfo} onOpenChange={setOpenInfo}>
+        <DialogContent className="sm:max-w-[40rem] sm:max-h-[44rem]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">{USER.title}</DialogTitle>
+          </DialogHeader>
+          <DataUserInfoContent
+            data={
+              globalUsersData.find(
+                (item) => item.user_id?.toString() == selectedIdInfo
+              ) as UserProps
+            }
+          />
+          <DialogFooter className="flex items-center justify-end">
+            <DialogClose>
+              <Button variant="outline">Close</Button>
+            </DialogClose>
+            <Button
+              variant="default"
+              onClick={() => {
+                if (handleSelectInfo) {
+                  handleSelectInfo();
+                }
+                setOpenInfo(false);
+                setSelectedIdInfo("");
+              } }
+            >
+              {isSelectedRow ? "Unselect" : "Select"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Drawer open={openInfo} onOpenChange={setOpenInfo}>
+      <DrawerContent>
+        <DrawerHeader className="text-left">
+          <DrawerTitle>{USER.title}</DrawerTitle>
+        </DrawerHeader>
+        <DataUserInfoContent
+          data={
+            globalUsersData.find(
+              (item) => item.user_id?.toString() == selectedIdInfo
+            ) as UserProps
+          }
+        />
+      </DrawerContent>
+    </Drawer>
+  );
+};
+
+type DataUserInfoProps = {
+  data: UserProps;
+};
+
+const DataUserInfoContent: React.FC<DataUserInfoProps> = ({ data }) => {
+  console.log(data);
+  return (
+    <ScrollArea className="h-full pr-4">
+      <div className="w-full h-full flex flex-col gap-6 items-center justify-center">
+        <Separator />
+        {/* Top */}
+        <div className="w-full flex max-md:flex-col items-center justify-between gap-10">
+          {/* Left */}
+          <Image
+            src={data?.image?.url || "/Avatar.png"}
+            alt="profile"
+            className="size-36 rounded-full"
+            width={100}
+            height={100}
+          />
+
+          {/* Right */}
+          <div className="w-full md:w-[80%] flex flex-col gap-6 items-start h-full">
+            {/* Username */}
+            <h1 className="w-full flex justify-between capitalize">
+              <span className="text-foreground/50">Username</span>
+              <span className="text-foreground/80 max-w-[70%] text-end">
+                {data?.username}
+              </span>
+            </h1>
+
+            {/* Name */}
+            <h1 className="w-full flex justify-between capitalize">
+              <span className="text-foreground/50">Name</span>
+              <span className="text-foreground/80 max-w-[70%] text-end">
+                {data?.first_name} {data?.last_name}
+              </span>
+            </h1>
+
+            {/* Email */}
+            <h1 className="w-full flex justify-between">
+              <span className="text-foreground/50">Email</span>
+              <span className="text-foreground/80 max-w-[70%] text-end">
+                {data?.email}
+              </span>
+            </h1>
+
+            {/* Phone */}
+            <h1 className="w-full flex justify-between capitalize">
+              <span className="text-foreground/50">Phone</span>
+              <span className="text-foreground/80 max-w-[70%] text-end">
+                {data?.phone}
+              </span>
+            </h1>
+          </div>
+        </div>
+        <Separator />
+
+        {/* Role */}
+        <h1 className="w-full flex justify-between capitalize">
+          <span className="text-foreground/50">Role</span>
+          <span className="text-foreground/80 max-w-[70%] text-end">
+            <TextWithIcon data={data?.role} type="role" />
+          </span>
+        </h1>
+
+        {/* Gender */}
+        <h1 className="w-full flex justify-between capitalize">
+          <span className="text-foreground/50">Gender</span>
+          <span className="text-foreground/80 max-w-[70%] text-end">
+            <TextWithIcon data={data?.gender} type="gender" />
+          </span>
+        </h1>
+
+        {/* Birth Date */}
+        <h1 className="w-full flex justify-between capitalize">
+          <span className="text-foreground/50">Birth Date</span>
+          <span className="text-foreground/80 max-w-[70%] text-end">
+            {data?.birth_date
+              ? new Date(data?.birth_date || "")?.toLocaleDateString("id-ID")
+              : "-"}
+          </span>
+        </h1>
+
+        {/* Email Verified */}
+        <h1 className="w-full flex justify-between capitalize">
+          <span className="text-foreground/50">Email Verified</span>
+          <span className="text-foreground/80 max-w-[70%] text-end">
+            <Badge
+              className="py-[0.15rem] px-2 rounded-md text-xs flex items-center gap-1"
+              variant={
+                data?.email_verified || data?.provider_id ? "success" : "failed"
+              }
+            >
+              {data?.email_verified || data?.provider_id ? (
+                <>
+                  <Check className="h-4 w-4" />
+                  Verified
+                </>
+              ) : (
+                <>
+                  <X className="h-4 w-4" />
+                  Unverified
+                </>
+              )}
+            </Badge>
+          </span>
+        </h1>
+
+        {/* Address */}
+        <h1 className="w-full flex justify-between capitalize">
+          <span className="text-foreground/50">Address</span>
+          <span className="text-foreground/80 max-w-[70%] text-end">
+            {data?.address
+              ? `${data?.country || "-"}, ${data?.province || "-"}, ${
+                  data?.city || "-"
+                }, ${data?.zip || "-"}`
+              : ""}
+          </span>
+        </h1>
+
+        <Separator />
+      </div>
+    </ScrollArea>
+  );
+};
+
+export default UserInfo;

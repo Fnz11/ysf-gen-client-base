@@ -1,0 +1,114 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import Image from "next/image";
+import React, { useEffect, useState } from "react";
+import { Popover, PopoverTrigger } from "./popover";
+import { PopoverContent } from "@radix-ui/react-popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "./command";
+import { ScrollArea } from "./scroll-area";
+import { Check } from "lucide-react";
+import { Input } from "./input";
+
+const PhoneInput = ({ ...props }: React.ComponentProps<typeof Input>) => {
+  const [selectedCountry, setSelectedCountry] = useState<string>("id");
+  const [phoneNumber, setPhoneNumber] = useState("");
+
+  useEffect(() => {
+    if (props?.value) {
+      setPhoneNumber(props?.value as string);
+    }
+  }, [props?.value]);
+
+  // Extract country data
+  const handleCountryChange = (code: string) => {
+    setSelectedCountry(code);
+    // if (countryData) {
+    //   setPhoneNumber(`+${countryData.prefix}`);
+    // }
+  };
+
+  const handlePhoneChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (isNaN(Number(event.target.value))) {
+      return;
+    }
+    if (event.target.value.length > 0 && selectedCountry) {
+      setPhoneNumber(event.target.value);
+      props?.onChange?.(event?.target?.value as any);
+    } else {
+      setPhoneNumber("");
+      props?.onChange?.("" as any);
+    }
+  };
+
+  return (
+    <div className="w-full flex gap-[0.5rem] z-[1000] px-[0.3vw]">
+      <Popover>
+        <PopoverTrigger className="flex h-12 rounded-md border border-input bg-background px-4 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-w-[5rem] py-[0.9rem] md:!py-[0.9vw] w-fit">
+          <Image
+            src={`https://flagcdn.com/id.svg`}
+            alt="FlagIcon"
+            className="w-[2rem] md:w-[2.3vw] aspect-video rounded-[0.4rem]"
+            width={15}
+            height={15}
+          />
+        </PopoverTrigger>
+        <PopoverContent className="min-w-[5rem] !z-[1500] w-fit">
+          <Command>
+            <CommandInput
+              className="!border-0 hover:!shadow-none focus:!ring-0"
+              placeholder="Search country..."
+            />
+            <CommandList>
+              <CommandEmpty>No country found.</CommandEmpty>
+              <CommandGroup>
+                <ScrollArea className="h-fit">
+                  <CommandItem
+                    value={"ID"}
+                    className="cursor-pointer"
+                    onSelect={() => handleCountryChange("ID")}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-[1rem] aspect-square flex items-center justify-center relative">
+                        {"ID" === selectedCountry && (
+                          <Check className="w-[1rem] aspect-square flex items-center justify-center absolute" />
+                        )}
+                      </div>
+                      <Image
+                        src={"https://flagcdn.com/id.svg"}
+                        alt={`Indonesian Flag`}
+                        className="w-[2rem] md:w-[2.3vw] aspect-video rounded-[0.4rem]"
+                        width={15}
+                        height={15}
+                      />{" "}
+                      <span>Indonesia (+62)</span>
+                    </div>
+                  </CommandItem>
+                </ScrollArea>
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+
+      <div className="w-full flex items-center justify-start relative">
+        <h1 className="text-[0.875vw] absolute left-0 pl-[1vw] z-[2]">+62</h1>
+        <Input
+          {...props}
+          type="text"
+          value={phoneNumber}
+          onChange={handlePhoneChange}
+          className="w-full relative !pl-[3vw]"
+          placeholder="000 000 00"
+        />
+      </div>
+    </div>
+  );
+};
+
+export default PhoneInput;

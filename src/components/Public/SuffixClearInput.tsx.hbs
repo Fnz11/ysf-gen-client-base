@@ -1,0 +1,23 @@
+import { cn } from "@/lib/utils";
+import { XCircle } from "lucide-react";
+import React from "react";
+
+type Props = {
+  condition: boolean;
+  onClick: () => void;
+};
+
+const SuffixClearInput: React.FC<Props> = ({ condition, onClick }) => {
+  return (
+    <XCircle
+      className={cn(
+        "w-6 h-6 cursor-pointer hover:scale-[1.1] text-foreground/30 hover:text-foreground/60 drop-shadow-md duration-100 transition-all ease-out opacity-0",
+        condition && "opacity-100"
+      )}
+      strokeWidth={1.5}
+      onClick={onClick}
+    />
+  );
+};
+
+export default SuffixClearInput;

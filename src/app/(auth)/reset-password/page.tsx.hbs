@@ -1,0 +1,321 @@
+"use client";
+import React, { Suspense, useEffect, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { useRouter, useSearchParams } from "next/navigation";
+import AuthClient from "@/components/Auth/AuthClient";
+import { useMutation } from "@tanstack/react-query";
+import { CardDescription } from "@/components/ui/card";
+import { PasswordInput } from "@/components/ui/password-input";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { toast } from "react-hot-toast";
+import {
+  checkCode,
+  forgotPassword,
+  resetPassword,
+  resetPasswordSchema,
+  ResetPasswordSchemaProps,
+  VerifyEmailSchemaProps,
+} from "@/utils/auth";
+import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
+
+const ResetPassword = () => {
+  return (
+    <Suspense fallback={""}>
+      <ResetPasswordClient />
+    </Suspense>
+  );
+};
+const ResetPasswordClient = () => {
+  // =============== HOOKS ================
+  const emailParam = useSearchParams().get("email");
+  const router = useRouter();
+  const [step, setStep] = useState<1 | 2>(1);
+  const form = useForm<ResetPasswordSchemaProps>({
+    resolver: zodResolver(resetPasswordSchema),
+  });
+
+  const { isPending: isPendingReset, mutate: mutateResetPassword } =
+    useMutation({
+      mutationKey: ["signin"],
+      mutationFn: (data: ResetPasswordSchemaProps) => resetPassword(data),
+      onSuccess: (res: any) => {
+        router.push("/signin");
+      },
+      onError: (err: any) => {
+        toast.error(err?.response?.data?.message || "Something went wrong");
+        console.log(err);
+      },
+    });
+
+  const { isPending: isPendingResend, mutate: mutateResendCode } = useMutation({
+    mutationKey: ["resend-code"],
+    mutationFn: (data: ResetPasswordSchemaProps) =>
+      new Promise((resolve, reject) => {
+        toast
+          .promise(forgotPassword(data), {
+            loading: "Sending code...",
+            success: "Code sent!",
+            error: "Failed to send code",
+          })
+          .then((res) => {
+            resolve(res.data.data);
+          });
+      }),
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Something went wrong");
+      console.log(err);
+    },
+  });
+
+  const { isPending: isPendingCheck, mutate: mutateCheckCode } = useMutation({
+    mutationKey: ["check-code"],
+    mutationFn: (data: VerifyEmailSchemaProps) =>
+      new Promise<ResetPasswordSchemaProps>((resolve, reject) => {
+        toast
+          .promise(checkCode(data), {
+            loading: "Verify...",
+            success: "Code verified!",
+            error: "Failed to verify code",
+          })
+          .then((res) => {
+            resolve(res.data);
+          });
+      }),
+    onSuccess: (res: any) => {
+      console.log("IWOVEEVNO", res);
+      if (res.status == 200) {
+        setStep(2);
+        form.reset();
+        form.setValue("email", res.data.email);
+        form.setValue("code", res.data.code);
+      }
+    },
+    onError: (err: any) => {
+      console.log(err);
+    },
+  });
+
+  // =============== STATES ================
+
+  const [countdown, setCountdown] = useState(60);
+  const { handleSubmit, control } = form;
+
+  // =============== HANDLE ================
+
+  const onSubmit = handleSubmit((data) => {
+    console.log("Submitted!: ", data);
+    mutateResetPassword(data);
+  });
+
+  const handleCheckCode = () => {
+    mutateCheckCode(form.getValues());
+    // setStep(2);
+  };
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (countdown > 0) {
+      interval = setInterval(() => {
+        setCountdown((prevCountdown) => prevCountdown - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [countdown]);
+
+  const handleResendCode = () => {
+    setCountdown(60);
+    mutateResendCode(form.getValues());
+  };
+
+  // useEffect(() => {
+  //   if (!emailParam) {
+  //     router.push("/signin");
+  //   }
+  // }, [emailParam, router]);
+
+  // =============== RENDER ================
+  return (
+    <>
+      <AuthClient
+        cardClassName={`${
+          step == 1 ? "md:w-[30rem]" : "md:w-[32rem]"
+        } transition-all duration-500 ease-out`}
+        cardTitle="Reset Password"
+        cardDescription="Enter the verification code sent to your email and create a new password to reset your account."
+      >
+        <div className="grid gap-4 w-full mt-2">
+          <Form {...form}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+
+                const validationResult = resetPasswordSchema.safeParse(
+                  form.getValues()
+                );
+
+                if (!validationResult.success) {
+                  console.log(validationResult);
+                  toast.error(validationResult.error.message || "Invalid input");
+                  return;
+                }
+                onSubmit(e);
+              }  }
+              className="grid gap-4 relative min-h-[10rem]"
+            >
+              {/* Code */}
+              <AnimatePresence>
+                {step == 1 && (
+                  <motion.div
+                    initial={ { opacity: 1 }  }
+                    animate={ { opacity: 1 }  }
+                    exit={ { opacity: 0, height: 0 }  }
+                    transition={ { duration: 0.3 }  }
+                    className="overflow-hidden absolute -top-5 left-1/2 transform -translate-x-1/2 p-2"
+                  >
+                    <button
+                      disabled={countdown > 0}
+                      onClick={() => handleResendCode()}
+                      className={`${
+                        countdown > 0
+                          ? "cursor-not-allowed opacity-[0.8]"
+                          : "text-primary hover:underline"
+                      } mx-auto flex items-center justify-center`}
+                      type="button"
+                    >
+                      Resend Code
+                      {countdown > 0 && `in ${countdown}s`}
+                    </button>{" "}
+                    <FormField
+                      control={control}
+                      name="code"
+                      render={({ field }) => (
+                        <FormItem className="w-full flex flex-col items-center justify-center">
+                          <FormControl>
+                            <InputOTP maxLength={6} {...field}>
+                              <InputOTPGroup>
+                                <InputOTPSlot className="w-14 h-14" index={0} />
+                                <InputOTPSlot className="w-14 h-14" index={1} />
+                                <InputOTPSlot className="w-14 h-14" index={2} />
+                                <InputOTPSlot className="w-14 h-14" index={3} />
+                                <InputOTPSlot className="w-14 h-14" index={4} />
+                                <InputOTPSlot className="w-14 h-14" index={5} />
+                              </InputOTPGroup>
+                            </InputOTP>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Email */}
+              <input
+                type="text"
+                hidden
+                value={emailParam as string}
+                {...form.register("email")}
+              />
+              <input
+                type="text"
+                hidden
+                value={form.getValues("code") as string}
+                {...form.register("code")}
+              />
+
+              <div
+                className={`flex flex-col gap-2 overflow-hidden  ${
+                  step == 2 ? "h-[12rem] opacity-100" : "h-0 opacity-0"
+                } transition-all delay-100 duration-500 ease-out px-1`}
+              >
+                {/* Password */}
+                <FormField
+                  control={control}
+                  name="new_password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>New Password</FormLabel>
+                      <FormControl>
+                        <PasswordInput
+                          placeholder="Input new password here"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Confirm Password */}
+                <FormField
+                  control={control}
+                  name="confirm_password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <PasswordInput
+                          placeholder="Confirm password here"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Submit */}
+              {step == 1 ? (
+                <Button
+                  disabled={isPendingCheck}
+                  loading={isPendingCheck}
+                  size={"lg"}
+                  type={"button"}
+                  onClick={handleCheckCode}
+                  className="w-full mt-auto"
+                >
+                  Check
+                </Button>
+              ) : (
+                <Button
+                  disabled={isPendingReset}
+                  loading={isPendingReset}
+                  size={"lg"}
+                  type="submit"
+                  className="w-full mt-auto"
+                >
+                  Submit
+                </Button>
+              )}
+            </form>
+          </Form>
+        </div>
+        <div className="mt-8 text-center text-sm text-muted-foreground">
+          Don&apos;t have an account?{" "}
+          <Link href="/signup" className="text-muted-foreground">
+            <Button variant={"linkHover2"}>Sign up</Button>
+          </Link>
+        </div>
+      </AuthClient>
+    </>
+  );
+};
+
+export default ResetPassword;

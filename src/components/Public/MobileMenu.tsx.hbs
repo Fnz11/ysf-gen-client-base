@@ -1,0 +1,48 @@
+"use client";
+import { useMediaQuery } from "@custom-react-hooks/use-media-query";
+import React, { useEffect, useState } from "react";
+import { Select } from "../ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Button } from "../ui/button";
+import { Grip } from "lucide-react";
+
+type Props = {
+  children: React.ReactNode;
+  className?: string;
+};
+
+const MobileMenu: React.FC<Props> = ({ children, className }) => {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    if (!isClient) {
+      setIsClient(true);
+    }
+  }, []);
+
+  if (!isClient) {
+    return <div className="h-10"></div>;
+  }
+
+  if (isDesktop) {
+    return <div className={className}>{children}</div>;
+  }
+
+  return (
+    <>
+      <Popover>
+        <PopoverTrigger asChild>
+          <div>
+            <Button variant={"outline"} size={"icon"}>
+              <Grip className="w-6 h-6" strokeWidth={0.6} />
+            </Button>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className={className}>{children}</PopoverContent>
+      </Popover>
+    </>
+  );
+};
+
+export default MobileMenu;

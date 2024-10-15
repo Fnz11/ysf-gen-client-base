@@ -1,0 +1,111 @@
+import { Input } from "@/components/ui/input";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+} from "@/components/ui/pagination";
+import {
+  DoubleArrowLeftIcon,
+  DoubleArrowRightIcon,
+} from "@radix-ui/react-icons";
+import { Table } from "@tanstack/react-table";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import React from "react";
+
+type PaginationTableProps = {
+  table: Table<any>;
+  paginationShadow: number | string;
+  setPaginationShadow: any;
+  debouncedHandleChangePage: any;
+  totalPage: number;
+};
+
+const PaginationTable: React.FC<PaginationTableProps> = ({
+  paginationShadow,
+  setPaginationShadow,
+  debouncedHandleChangePage,
+  table,
+  totalPage,
+}) => {
+  return (
+    <Pagination>
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationLink
+            onClick={() => {
+              table.setPageIndex(0);
+              setPaginationShadow(1);
+            }  }
+            disabled={table.getState().pagination.pageIndex === 1}
+          >
+            <DoubleArrowLeftIcon className="h-4 w-4" aria-hidden="true" />
+          </PaginationLink>
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationLink
+            onClick={() => {
+              table.previousPage();
+              setPaginationShadow(table.getState().pagination.pageIndex);
+            }  }
+            disabled={table.getState().pagination.pageIndex === 1}
+          >
+            <ChevronLeftIcon className="h-4 w-4" aria-hidden="true" />
+          </PaginationLink>
+        </PaginationItem>
+
+        <PaginationItem>
+          <Input
+            value={paginationShadow}
+            parentClassName="h-fit w-[3.5rem]"
+            className="small-input w-[3.5rem]"
+            onChange={(e) => {
+              const value = e.target.value;
+
+              if (value === "") {
+                setPaginationShadow("");
+                return;
+              }
+
+              const parsedValue = parseInt(value);
+              if (
+                isNaN(parsedValue) ||
+                parsedValue < 1 ||
+                parsedValue > totalPage
+              ) {
+                return;
+              }
+
+              setPaginationShadow(parsedValue);
+              debouncedHandleChangePage(parsedValue);
+            }  }
+          />
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationLink
+            onClick={() => {
+              table.nextPage();
+              setPaginationShadow(table.getState().pagination.pageIndex);
+            }  }
+            disabled={table.getState().pagination.pageIndex === totalPage}
+          >
+            <ChevronRightIcon className="h-4 w-4" aria-hidden="true" />
+          </PaginationLink>
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationLink
+            onClick={() => {
+              table.setPageIndex(table.getPageCount() - 1);
+              setPaginationShadow(table.getPageCount() - 1);
+            }  }
+            disabled={table.getState().pagination.pageIndex === totalPage}
+          >
+            <DoubleArrowRightIcon className="h-4 w-4" aria-hidden="true" />
+          </PaginationLink>
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  );
+};
+
+export default PaginationTable;

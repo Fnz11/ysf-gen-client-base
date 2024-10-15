@@ -1,0 +1,18 @@
+import React from "react";
+import { Card } from "../ui/card";
+import { Skeleton } from "../ui/skeleton";
+
+const TablelClientSkeleton = () => {
+  return (
+    <>
+      <Skeleton>
+        <Card className="w-full flex justify-between items-center p-6 h-28 border-transparent"></Card>
+      </Skeleton>
+      <Skeleton>
+        <Card className="w-full flex justify-between items-center p-6 h-screen border-transparent"></Card>
+      </Skeleton>
+    </>
+  );
+};
+
+export default TablelClientSkeleton;

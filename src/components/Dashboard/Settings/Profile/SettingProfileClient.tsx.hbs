@@ -1,0 +1,140 @@
+"use client";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import React, { useEffect } from "react";
+import ImageForm from "../../User/Mutate/ImageForm"; 
+import GeneralForm from "../../User/Mutate/GeneralForm"; 
+import DetailForm from "../../User/Mutate/DetailForm";
+import CredentialsForm from "./CredentialsForm";
+import { useForm } from "react-hook-form";
+import {
+  updateUserSchema,
+  UpdateUserSchemaProps,
+  updateUser,
+} from "@/utils/users-api";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { Form } from "@/components/ui/form";
+
+const SettingProfileClient: React.FC<{ initData: any }> = ({ initData }) => {
+  // =============== DETAIL ================
+
+  const form = useForm<UpdateUserSchemaProps>({
+    resolver: zodResolver(updateUserSchema),
+    defaultValues: {
+      user_id: "",
+      first_name: "",
+      last_name: "",
+      phone: "",
+      birth_date: null,
+      gender: "NOT_SPECIFIED",
+      address: "",
+      city: "",
+      province: "",
+      country: "",
+      zip: "",
+      password: "",
+    },
+  });
+  const { handleSubmit, reset } = form;
+  const { isPending, mutate: mutateUpdate } = useMutation({
+    mutationKey: ["login"],
+    mutationFn: (data: UpdateUserSchemaProps) => {
+      return updateUser(initData.user_id as string, data);
+    },
+    onSuccess: (res: any) => {
+      toast.success(
+        res?.response?.data?.message || "Successfully updated detail user data"
+      );
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Something went wrong");
+      console.log(err);
+    },
+  });
+
+  useEffect(() => {
+    if (initData) {
+      reset({
+        username: initData?.username,
+        email: initData?.email,
+        password: initData?.password,
+        role: initData?.role,
+        first_name: initData?.first_name,
+        last_name: initData?.last_name,
+        phone: initData?.phone,
+        address: initData?.address,
+        image: initData?.image?.url,
+        banner: initData?.banner?.url,
+        birth_date: initData?.birth_date,
+        city: initData?.city,
+        country: initData?.country,
+        gender: initData?.gender,
+        province: initData?.province,
+        zip: initData?.zip,
+      });
+    }
+  }, [initData, reset]);
+
+  const onSubmit = handleSubmit((data: UpdateUserSchemaProps) => {
+    console.log("Submitted!: " + JSON.stringify(data));
+    mutateUpdate(data);
+  });
+  return (
+    <ScrollArea>
+      <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+        <Form {...form}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+
+              const validationResult = updateUserSchema.safeParse(
+                form.getValues()
+              );
+
+              if (!validationResult.success) {
+                console.log(validationResult);
+                toast.error(validationResult.error.message || "Invalid input");
+                return;
+              }
+              onSubmit(e);
+            } }
+            className="flex flex-col gap-4"
+          >
+            {/* Image */}
+            <ImageForm
+              disabled={!initData?.user_id}
+              initData={initData}
+              form={form as any}
+              loading={isPending}
+            />
+
+            {/* General */}
+            <GeneralForm
+              disabled={!initData?.user_id}
+              initData={initData}
+              form={form as any}
+              loading={isPending}
+              showPassword={false}
+              disabledEmail={true}
+              disabledRole={true}
+            />
+
+            {/* Details */}
+            <DetailForm
+              disabled={!initData?.user_id}
+              initData={initData}
+              form={form as any}
+              loading={isPending}
+            />
+          </form>
+        </Form>
+
+        {/* Credentials */}
+        <CredentialsForm initData={initData} />
+      </div>
+    </ScrollArea>
+  );
+};
+
+export default SettingProfileClient;

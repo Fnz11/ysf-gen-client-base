@@ -1,0 +1,237 @@
+"use client";
+import React, { useEffect, useRef, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
+import { z } from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { NextPage } from "next";
+import { useRouter } from "next/navigation";
+import AuthClient from "@/components/Auth/AuthClient";
+import Link from "next/link";
+import { PasswordInput } from "@/components/ui/password-input";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import {
+  googleSignIn,
+  GoogleSignInDataProps,
+  signin,
+  signinSchema,
+  SignInSchemaProps,
+} from "@/utils/auth";
+import Image from "next/image";
+import getGoogleOAUTHURL from "@/utils/getGoogleOAuthUrl";
+import { Loader2 } from "lucide-react";
+import setSession from "@/utils/setSession"; 
+
+const SignIn: NextPage = () => {
+  // =============== HOOKS ================
+  const router = useRouter();
+  const isRequestPending = useRef(false);
+  const form = useForm<SignInSchemaProps>({
+    resolver: zodResolver(signinSchema),
+    defaultValues: {
+      email: "finz1112@gmail.com",
+      password: "Password2@",
+    },
+  });
+  const { isPending, mutate: mutateSignIn } = useMutation({
+    mutationKey: ["signin"],
+    mutationFn: (data: SignInSchemaProps) => signin(data),
+    onSuccess: (res: any) => {
+      console.log(res);
+      setSession(res.data.data.user, res.data.data.token);
+      if (window) {
+        window.location.href = "/";
+      }
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Something went wrong");
+      console.log(err);
+    },
+  });
+
+  const { isPending: isPendingGoogleSignIn, mutate: mutateGoogleSignIn } =
+    useMutation({
+      mutationKey: ["googleSignIn"],
+      mutationFn: (data: GoogleSignInDataProps) => googleSignIn(data),
+      onSuccess: (res: any) => {
+        setSession(res.data.data.user, res.data.data.token);
+        router.push("/");
+      },
+      onError: (err: any) => {
+        toast.error(err?.response?.data?.message || "Something went wrong");
+        console.log(err);
+      },
+    });
+
+  // =============== STATES ================
+
+  const { handleSubmit, control } = form;
+  const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
+
+  // =============== HANDLE ================
+
+  const onSubmit = handleSubmit((data) => {
+    console.log("Submitted!: ", data);
+    mutateSignIn(data);
+  });
+
+  const handleGoogleSignIn = () => {
+    if (isRequestPending.current) return;
+    isRequestPending.current = true;
+
+    const url = getGoogleOAUTHURL();
+    const authWindow = window.open(url, "_blank", "width=600,height=600");
+
+    const pollTimer = window.setInterval(() => {
+      if (authWindow?.closed !== false) {
+        window.clearInterval(pollTimer);
+        setIsLoadingGoogle(false);
+        isRequestPending.current = false;
+      }
+    }, 500);
+  }; 
+
+  useEffect(() => {
+    const listenForMessage = (event: MessageEvent) => {
+      if (event.origin !== "http://localhost:3000") return;
+      if (event.data.type === "AUTH_SUCCESS") {
+        console.log(event);
+        const { token, id_token } = event.data;
+        if (!isPendingGoogleSignIn) {
+          mutateGoogleSignIn({ id_token, access_token: token });
+        }
+      } else {
+        setIsLoadingGoogle(false);
+      }
+    };
+
+    window.addEventListener("message", listenForMessage);
+
+    return () => {
+      // Clean up event listener when component unmounts
+      window.removeEventListener("message", listenForMessage);
+    };
+  }, [isPendingGoogleSignIn, mutateGoogleSignIn]);
+
+  // =============== RENDER ================
+
+  return (
+    <>
+      {/* Loader */}
+      {(isLoadingGoogle || isPendingGoogleSignIn) && (
+        <div className="absolute top-0 left-0 bg-white/50 dark:bg-white/20 size-full flex items-center justify-center z-[25]">
+          <Loader2 className="text-primary animate-spin" size={56} />
+        </div>
+      )}
+
+      {/* Content */}
+      <AuthClient
+        title="Welcome Back!"
+        cardTitle="Sign In to Your Account"
+        description="We're thrilled to see you again!. If you encounter any issues, don't hesitate to reach out to our support team for assistance."
+        image="/Abs1.jpg"
+      >
+        <div className="grid gap-6 w-full">
+          <Form {...form}>
+            <form onSubmit={onSubmit} className="grid gap-6">
+              {/* Username */}
+              <FormField
+                control={control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Input Email here" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Password */}
+              <FormField
+                control={control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="w-full flex flex-col gap-y-1">
+                    <div className="w-full flex items-center justify-between">
+                      <FormLabel>
+                        Password
+                        {/* Forgot password */}
+                      </FormLabel>
+                      <Link
+                        href="/forgot-password"
+                        className="ml-auto hover:underline"
+                      >
+                        {" "}
+                        Forgot password?
+                      </Link>
+                    </div>
+                    <FormControl>
+                      <PasswordInput
+                        placeholder="Input password here"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Submit */}
+              <Button
+                className="w-full mx-auto"
+                disabled={isPending}
+                loading={isPending}
+                type="submit"
+              >
+                SignIn
+              </Button>
+              <p className="flex items-center gap-x-3 text-sm text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
+                or
+              </p>
+            </form>
+          </Form>
+          <Button
+            onClick={() => handleGoogleSignIn()}
+            size={"lg"}
+            variant="outline"
+            className="w-full flex items-center gap-3"
+          >
+            <Image
+              src="/Google.png"
+              className="w-5 h-5"
+              alt="Google"
+              width={20}
+              height={20}
+            />
+            SignIn with Google
+          </Button>
+        </div>
+        <div className="mt-8 text-center text-base text-muted-foreground">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/signup"
+            className="hover:underline hover:!scale-[1.1] transition-all "
+          >
+            Sign up
+          </Link>
+        </div>
+      </AuthClient>
+    </>
+  );
+};
+
+export default SignIn;

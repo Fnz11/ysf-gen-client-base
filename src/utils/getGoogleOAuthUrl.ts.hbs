@@ -1,0 +1,27 @@
+const getGoogleOAUTHURL = () => {
+  const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+  const REDIRECT_URL = process.env.NEXT_PUBLIC_GOOGLE_OAUTH_REDIRECT_URL;
+  const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  const CLIENT_SECRET = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET;
+
+  if (!REDIRECT_URL || !CLIENT_ID || !CLIENT_SECRET) {
+    throw new Error("Missing Google OAuth credentials");
+  }
+
+  const options = {
+    redirect_uri: REDIRECT_URL,
+    client_id: CLIENT_ID,
+    // access_type: "offline",
+    response_type: "code",
+    scope: [
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile",
+    ].join(" "),
+    prompt: "consent",
+  };
+
+  const qs = new URLSearchParams(options);
+  return `${rootUrl}?${qs.toString()}`;
+};
+
+export default getGoogleOAUTHURL;

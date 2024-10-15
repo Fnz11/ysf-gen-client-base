@@ -1,0 +1,28 @@
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { VariantProps } from "class-variance-authority";
+import React from "react";
+
+const SideLink = ({
+  onClick,
+  children,
+  variant = "outline",
+  className,
+  ...props
+}: {
+  onClick?: () => void;
+  className?: string;
+  children: React.ReactNode;
+} & VariantProps<typeof buttonVariants>) => {
+  return (
+    <div
+      onClick={onClick}
+      className={cn(buttonVariants({ variant, className }), "px-4")}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+};
+
+export default SideLink;

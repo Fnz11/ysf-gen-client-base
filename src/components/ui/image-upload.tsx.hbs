@@ -1,0 +1,150 @@
+import React, { useCallback, useState } from "react";
+import { Button } from "./button";
+import { Input } from "./input";
+import { useDropzone } from "react-dropzone";
+import Image from "next/image";
+import { UploadCloudIcon } from "lucide-react";
+import { AxiosProgressEvent } from "axios";
+import { Progress } from "./progress";
+
+type ImageUploadProps = {
+  onChange?: (url: string) => void;
+  value?: string;
+  children?: React.ReactNode;
+};
+
+const ImageUpload: React.FC<ImageUploadProps> = ({
+  children,
+  value,
+  onChange,
+}) => {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [progress, setProgress] = useState<number>(0);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [uploadedImagePath, setUploadedImagePath] = useState<string | null>(
+    null
+  );
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const onUploadProgress = (progressEvent: AxiosProgressEvent) => {
+    if (progressEvent.total) {
+      const percentage = Math.round(
+        (progressEvent.loaded * 100) / progressEvent.total
+      );
+      setProgress(percentage);
+    }
+  };
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files?.length) {
+      const image = event.target.files[0];
+      setSelectedImage(image);
+      handleImageUpload(image);
+    }
+  };
+
+  const removeSelectedImage = () => {
+    setLoading(false);
+    setUploadedImagePath(null);
+    setSelectedImage(null);
+    setPreviewUrl(null);
+  };
+
+  const handleImageUpload = async (image: File) => {
+    if (!image) return;
+    setLoading(true);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setLoading(false);
+      setUploadedImagePath(base64String);
+      setPreviewUrl(base64String);
+      if (onChange) {
+        onChange(base64String);
+      }
+    };
+    reader.readAsDataURL(image);
+  };
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      const image = acceptedFiles[0];
+      setSelectedImage(image);
+      handleImageUpload(image);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const { getRootProps, getInputProps } = useDropzone({ onDrop });
+
+  return (
+    <div className="space-y-3 aspect-square">
+      <div {...getRootProps()} className="h-full relative overflow-hidden rounded-xl">
+        {!!uploadedImagePath && (
+          <Button
+            onClick={removeSelectedImage}
+            type="button"
+            className="absolute top-0 left-0"
+            variant="secondary"
+          >
+            {uploadedImagePath ? "Remove" : "Close"}
+          </Button>
+        )}
+        <label
+          htmlFor="dropzone-file"
+          className="relative flex flex-col items-center justify-center p-6 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600 w-full visually-hidden-focusable h-full"
+        >
+          {loading && (
+            <div className="text-center max-w-md">
+              <Progress value={progress} />
+              <p className="text-sm font-semibold">Uploading Picture</p>
+              <p className="text-xs text-gray-400">
+                Do not refresh or perform any other action while the picture is
+                being uploaded
+              </p>
+            </div>
+          )}
+
+          {!loading && !uploadedImagePath && (
+            <div className="text-center">
+              <div className="border p-2 rounded-md max-w-min mx-auto">
+                <UploadCloudIcon size="1.6em" />
+              </div>
+
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                <span className="font-semibold">Drag an image</span>
+              </p>
+              <p className="text-xs text-gray-400 dark:text-gray-400">
+                Select a image or drag here to upload directly
+              </p>
+            </div>
+          )}
+
+          {previewUrl && !loading && (
+            <div className="text-center space-y-2 absolute top-0 left-0 size-full">
+              <Image
+                width={1000}
+                height={1000}
+                src={previewUrl}
+                className="w-full object-cover"
+                alt="uploaded image"
+              /> 
+            </div>
+          )}
+        </label>
+
+        <Input
+          {...getInputProps()}
+          accept="image/png, image/jpeg"
+          type="file"
+          className="opacity-0 size-full absolute top-0 left-0"
+          disabled={loading || uploadedImagePath !== null}
+          onChange={handleImageChange}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default ImageUpload;

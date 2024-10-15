@@ -1,0 +1,86 @@
+import type { Metadata } from "next";
+import { DM_Sans } from "next/font/google";
+import "./globals.css";
+import BaseProvider from "@/components/BaseProvider";
+import NextTopLoader from "nextjs-toploader";
+
+const DMSans = DM_Sans({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "{{ projectName }}",
+  description: "DESCRIPTION",
+  applicationName: "{{ projectName }}",
+  keywords: ["{{ projectName }}"],
+  authors: [
+    {
+      name: "{{ projectName }}",
+      url: "https://nextjs.org/",
+    },
+  ],
+  creator: "{{ projectName }}",
+  generator: "Next.js",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+    shortcut: "/android-chrome-512x512.png",
+  },
+  manifest: "/site.webmanifest",
+  metadataBase: new URL("https://nextjs.org/"),
+  alternates: {
+    canonical: "https://nextjs.org/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "{{ projectName }}",
+    description: "DESCRIPTION",
+    creator: "{{ projectName }}",
+    images: ["URL/banner.png"],
+  },
+  openGraph: {
+    title: "{{ projectName }}",
+    description: "DESCRIPTION",
+    url: "https://nextjs.org/",
+    siteName: "{{ projectName }}",
+    images: [
+      {
+        url: "URL/banner.png",
+        width: 1200,
+        height: 1200,
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+      </head>
+      <body className={"tracking-tight overflow-x-hidden " + DMSans.className}>
+        <BaseProvider>
+          <div className="fixed top-0 left-0 inset-0 -z-10 h-full w-full bg-white bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_0.5px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:15rem_10rem] opacity-[0.7]" />
+          <NextTopLoader
+            showSpinner={false}
+            height={4}
+            color="#FFC200"
+            crawlSpeed={10}
+          />
+
+          {children}
+        </BaseProvider>
+      </body>
+    </html>
+  );
+}
