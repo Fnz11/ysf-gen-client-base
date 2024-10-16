@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Button } from "./button";
 import { Input } from "./input";
 import { useDropzone } from "react-dropzone";
@@ -25,6 +25,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     null
   );
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (value) {
+      setPreviewUrl(value);
+    }
+  }, [value]);
 
   const onUploadProgress = (progressEvent: AxiosProgressEvent) => {
     if (progressEvent.total) {
@@ -79,18 +84,21 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
   return (
-    <div className="space-y-3 aspect-square">
-      <div {...getRootProps()} className="h-full relative overflow-hidden rounded-xl">
-        {!!uploadedImagePath && (
-          <Button
-            onClick={removeSelectedImage}
-            type="button"
-            className="absolute top-0 left-0"
-            variant="secondary"
-          >
-            {uploadedImagePath ? "Remove" : "Close"}
-          </Button>
-        )}
+    <div className="space-y-3 aspect-square group relative">
+      {previewUrl && !loading && (
+        <Button
+          onClick={removeSelectedImage}
+          type="button"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10] group-hover:opacity-100 opacity-0 transition-all duration-300 ease-out"
+          variant="outline"
+        >
+          Remove
+        </Button>
+      )}
+      <div
+        {...getRootProps()}
+        className="h-full relative overflow-hidden rounded-xl"
+      >
         <label
           htmlFor="dropzone-file"
           className="relative flex flex-col items-center justify-center p-6 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600 w-full visually-hidden-focusable h-full"
@@ -127,9 +135,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                 width={1000}
                 height={1000}
                 src={previewUrl}
-                className="w-full object-cover"
+                className="w-full h-full object-cover"
                 alt="uploaded image"
-              /> 
+              />
             </div>
           )}
         </label>
