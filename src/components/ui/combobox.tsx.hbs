@@ -24,6 +24,7 @@ type ComboboxProps = {
   onChange: (value: string | string[]) => void;
   id: string;
   value: string | string[];
+  getInitialData?: () => Promise<DataProps[]>;
   getData: (value: string) => Promise<DataProps[]>;
   parentClassName?: string;
   contentClassName?: string;
@@ -38,19 +39,23 @@ export function Combobox({
   getData,
   id,
   parentClassName,
+  getInitialData,
   contentClassName,
   placeholder = "Enter here",
   multiple,
   alwaysOpen,
 }: ComboboxProps) {
   const [showData, setShowData] = useState<DataProps[]>([]);
+  const [initialData, setInitialData] = useState<DataProps[]>([]);
   const [open, setOpen] = useState(alwaysOpen ? true : false);
   const [{ shadowInput, inputValue }, setInputValue] = useState<{
     shadowInput: string;
     inputValue: string;
   }>({ shadowInput: "", inputValue: "" });
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [selectedItems, setSelectedItems] = useState<DataProps[]>([]);
+  const [selectedItems, setSelectedItems] = useState<string[]>(
+    multiple ? (value as string[]) : []
+  );
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { isSuccess, data, isLoading } = useQuery({
@@ -61,10 +66,43 @@ export function Combobox({
   });
 
   useEffect(() => {
-    if (data && isSuccess) {
-      setShowData(data);
+    if (getInitialData && initialData.length === 0) {
+      getInitialData().then((data) => {
+        setInitialData(data);
+        setSelectedItems(data.map((item) => item.value));
+        setShowData((prev) => {
+          const mergedArray = [...data, ...prev];
+          const uniqueMap = new Map();
+          mergedArray.forEach((item) => {
+            if (!uniqueMap.has(item.value)) {
+              uniqueMap.set(item.value, item);
+            }
+          });
+          const uniqueArray = Array.from(uniqueMap.values());
+          return uniqueArray;
+        });
+      });
     }
-  }, [isSuccess, data]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getInitialData]);
+
+  useEffect(() => {
+    if (data && isSuccess) {
+      setShowData((prev) => {
+        const mergedArray = [...data, ...prev];
+        const uniqueMap = new Map();
+        mergedArray.forEach((item) => {
+          if (!uniqueMap.has(item.value)) {
+            uniqueMap.set(item.value, item);
+          }
+        });
+        const uniqueArray = Array.from(uniqueMap.values());
+        return uniqueArray;
+      });
+    } else if (data?.length === 0) {
+      setShowData([]);
+    }
+  }, [isSuccess, data, initialData]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debounceInputChange = useCallback(
@@ -122,19 +160,19 @@ export function Combobox({
 
   const handleSelect = (item: DataProps) => {
     if (multiple) {
-      setSelectedItems((prev) => {
-        const isSelected = prev.some(
-          (selectedItem) => selectedItem.value === item.value
-        );
-        let newSelectedItems;
+      setSelectedItems((prev: string[]) => {
+        const isSelected = prev?.includes(item.value);
+        let newSelectedItems: any[] = [];
         if (isSelected) {
-          newSelectedItems = prev.filter(
-            (selectedItem) => selectedItem.value !== item.value
+          newSelectedItems = prev?.filter(
+            (selectedItem) => selectedItem !== item.value
           );
+        } else if (prev) {
+          newSelectedItems = [...prev, item.value];
         } else {
-          newSelectedItems = [...prev, item];
+          newSelectedItems = [item.value];
         }
-        onChange(newSelectedItems.map((selectedItem) => selectedItem.value));
+        onChange(newSelectedItems);
         return newSelectedItems;
       });
       if (inputRef.current) {
@@ -210,8 +248,8 @@ export function Combobox({
                 <>
                   {showData?.map((item, index) => {
                     const isChecked = multiple
-                      ? selectedItems.find(
-                          (selectedItem) => selectedItem.value == item.value
+                      ? selectedItems?.find(
+                          (selectedItem) => selectedItem == item.value
                         )
                       : item.value == value;
                     const isActive = hoveredIndex === index;
