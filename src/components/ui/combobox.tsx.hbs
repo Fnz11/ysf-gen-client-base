@@ -68,6 +68,7 @@ export function Combobox({
   useEffect(() => {
     if (getInitialData && initialData.length === 0) {
       getInitialData().then((data) => {
+        if (data.length === 0) return;
         setInitialData(data);
         setSelectedItems(data.map((item) => item.value));
         setShowData((prev) => {
