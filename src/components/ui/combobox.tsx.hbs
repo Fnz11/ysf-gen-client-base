@@ -208,7 +208,7 @@ export function Combobox({
               if (inputRef.current) {
                 inputRef.current.focus();
               }
-            }}
+            } }
             placeholder={placeholder}
             value={open ? shadowInput : value}
             onChange={handleInputChange}
@@ -232,9 +232,9 @@ export function Combobox({
               <AnimatePresence>
                 {isLoading && (
                   <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={ { opacity: 0 } }
+                    animate={ { opacity: 1 } }
+                    exit={ { opacity: 0 } }
                     className="absolute size-full bg-slate-950/20 flex justify-center scale-[1.1] z-[1000]"
                   >
                     <Loader2 className="animate-spin mt-5" />
